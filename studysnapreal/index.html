@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>StudySnap — Free AI Study Materials in Seconds</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<!-- Google AdSense — replace ca-pub-XXXXXXXXXXXXXXXX with your Publisher ID after approval -->
+<!-- <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX" crossorigin="anonymous"></script> -->
+<style>
+  :root {
+    --bg: #06060f;
+    --surface: #0c0c1e;
+    --surface2: #12122a;
+    --border: rgba(255,255,255,0.07);
+    --accent: #c8ff00;
+    --accent-dim: rgba(200,255,0,0.12);
+    --accent-glow: rgba(200,255,0,0.25);
+    --text: #f0f0ff;
+    --muted: #7070a0;
+    --muted2: #4a4a70;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 16px; line-height: 1.6; overflow-x: hidden; }
+  body::before { content: ''; position: fixed; inset: 0; background-image: linear-gradient(rgba(200,255,0,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(200,255,0,0.03) 1px, transparent 1px); background-size: 60px 60px; pointer-events: none; z-index: 0; }
+
+  nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; padding: 0 5%; height: 64px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); background: rgba(6,6,15,0.85); backdrop-filter: blur(16px); }
+  .nav-logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+  .logo-mark { width: 32px; height: 32px; background: var(--accent); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+  .logo-name { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 18px; color: var(--text); }
+  .nav-links { display: flex; align-items: center; gap: 32px; list-style: none; }
+  .nav-links a { color: var(--muted); text-decoration: none; font-size: 14px; transition: color 0.2s; }
+  .nav-links a:hover { color: var(--text); }
+  .nav-cta { background: var(--accent); color: #06060f; padding: 8px 20px; border-radius: 8px; font-weight: 600; font-size: 14px; text-decoration: none; transition: opacity 0.2s; }
+  .nav-cta:hover { opacity: 0.85; }
+
+  section { position: relative; z-index: 1; }
+
+  .hero { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 100px 5% 60px; }
+  .free-badge { display: inline-flex; align-items: center; gap: 6px; background: rgba(93,200,100,0.12); border: 1px solid rgba(93,200,100,0.25); color: #5dc864; padding: 5px 14px; border-radius: 100px; font-size: 13px; font-weight: 600; margin-bottom: 20px; }
+  .hero-badge { display: inline-flex; align-items: center; gap: 8px; background: var(--accent-dim); border: 1px solid rgba(200,255,0,0.2); color: var(--accent); padding: 6px 16px; border-radius: 100px; font-size: 13px; font-weight: 500; margin-bottom: 32px; letter-spacing: 0.02em; }
+  .hero-badge span { width: 6px; height: 6px; background: var(--accent); border-radius: 50%; display: inline-block; animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:0.4;} }
+  h1 { font-family: 'Syne', sans-serif; font-weight: 800; font-size: clamp(42px, 6vw, 80px); line-height: 1.05; letter-spacing: -0.03em; margin-bottom: 24px; max-width: 900px; }
+  h1 em { font-style: normal; color: var(--accent); }
+  .hero-sub { font-size: clamp(16px, 2vw, 20px); color: var(--muted); max-width: 560px; margin: 0 auto 40px; font-weight: 300; line-height: 1.7; }
+  .hero-btns { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; margin-bottom: 64px; }
+  .btn-primary { background: var(--accent); color: #06060f; padding: 14px 32px; border-radius: 10px; font-weight: 600; font-size: 15px; text-decoration: none; transition: all 0.2s; font-family: 'DM Sans', sans-serif; box-shadow: 0 0 30px var(--accent-glow); }
+  .btn-primary:hover { box-shadow: 0 0 50px rgba(200,255,0,0.4); transform: translateY(-1px); }
+  .btn-secondary { background: transparent; color: var(--text); padding: 14px 32px; border-radius: 10px; font-weight: 500; font-size: 15px; text-decoration: none; border: 1px solid var(--border); transition: all 0.2s; }
+  .btn-secondary:hover { border-color: rgba(255,255,255,0.2); background: rgba(255,255,255,0.04); }
+
+  .hero-demo { width: 100%; max-width: 700px; background: var(--surface); border: 1px solid var(--border); border-radius: 20px; overflow: hidden; box-shadow: 0 40px 100px rgba(0,0,0,0.6), 0 0 60px rgba(200,255,0,0.06); }
+  .demo-bar { background: var(--surface2); padding: 12px 16px; display: flex; align-items: center; gap: 8px; border-bottom: 1px solid var(--border); }
+  .dot { width: 10px; height: 10px; border-radius: 50%; }
+  .dot.r { background: #ff5f57; } .dot.y { background: #ffbd2e; } .dot.g { background: #28c840; }
+  .demo-url { background: rgba(255,255,255,0.05); border-radius: 6px; padding: 4px 14px; font-size: 12px; color: var(--muted); margin-left: 8px; }
+  .demo-inner { padding: 28px 24px; }
+  .demo-step { display: flex; align-items: flex-start; gap: 14px; padding: 12px 0; border-bottom: 1px solid var(--border); }
+  .demo-step:last-child { border-bottom: none; }
+  .step-num { width: 28px; height: 28px; background: var(--accent-dim); border: 1px solid rgba(200,255,0,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; color: var(--accent); flex-shrink: 0; }
+  .step-text { font-size: 14px; color: var(--muted); padding-top: 4px; }
+  .step-text strong { color: var(--text); font-weight: 500; }
+
+  .ad-banner { background: var(--surface2); border: 1px dashed var(--muted2); border-radius: 10px; padding: 16px; text-align: center; color: var(--muted2); font-size: 12px; margin: 40px auto; max-width: 728px; height: 90px; display: flex; align-items: center; justify-content: center; letter-spacing: 0.05em; text-transform: uppercase; }
+
+  .stats { display: flex; justify-content: center; gap: 48px; flex-wrap: wrap; padding: 48px 5%; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); position: relative; z-index: 1; }
+  .stat { text-align: center; }
+  .stat-num { font-family: 'Syne', sans-serif; font-size: 36px; font-weight: 800; color: var(--accent); line-height: 1; margin-bottom: 4px; }
+  .stat-label { font-size: 13px; color: var(--muted); }
+
+  .how { padding: 100px 5%; max-width: 1100px; margin: 0 auto; }
+  .section-label { font-size: 12px; text-transform: uppercase; letter-spacing: 0.12em; color: var(--accent); font-weight: 600; margin-bottom: 16px; }
+  h2 { font-family: 'Syne', sans-serif; font-weight: 700; font-size: clamp(28px, 4vw, 44px); letter-spacing: -0.02em; line-height: 1.15; margin-bottom: 16px; }
+  .section-sub { color: var(--muted); font-size: 18px; font-weight: 300; max-width: 500px; margin-bottom: 60px; }
+  .steps-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; }
+  .step-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 28px 24px; transition: border-color 0.2s, transform 0.2s; }
+  .step-card:hover { border-color: rgba(200,255,0,0.2); transform: translateY(-2px); }
+  .step-icon { font-size: 32px; margin-bottom: 16px; }
+  .step-card h3 { font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 700; margin-bottom: 10px; }
+  .step-card p { font-size: 14px; color: var(--muted); line-height: 1.7; }
+
+  .features { padding: 100px 5%; max-width: 1100px; margin: 0 auto; }
+  .features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; margin-top: 48px; }
+  .feature-pill { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 20px 22px; display: flex; align-items: flex-start; gap: 16px; transition: border-color 0.2s; }
+  .feature-pill:hover { border-color: rgba(200,255,0,0.15); }
+  .feature-icon { font-size: 24px; flex-shrink: 0; margin-top: 2px; }
+  .feature-pill h4 { font-family: 'Syne', sans-serif; font-size: 15px; font-weight: 600; margin-bottom: 4px; }
+  .feature-pill p { font-size: 13px; color: var(--muted); line-height: 1.5; }
+
+  .free-section { padding: 80px 5%; max-width: 800px; margin: 0 auto; text-align: center; }
+  .free-card { background: var(--surface); border: 1px solid rgba(200,255,0,0.2); border-radius: 20px; padding: 48px 40px; position: relative; overflow: hidden; }
+  .free-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, transparent, var(--accent), transparent); }
+  .free-card h2 { margin-bottom: 16px; }
+  .free-card p { color: var(--muted); font-size: 16px; max-width: 520px; margin: 0 auto 28px; line-height: 1.8; }
+  .free-perks { display: flex; justify-content: center; gap: 32px; flex-wrap: wrap; margin-bottom: 36px; }
+  .free-perk { display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--text); }
+  .free-perk::before { content: '✓'; color: var(--accent); font-weight: 700; font-size: 16px; }
+  .ad-explain { background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 12px; padding: 16px 20px; font-size: 13px; color: var(--muted); margin-top: 24px; line-height: 1.7; text-align: left; }
+  .ad-explain strong { color: var(--text); }
+
+  .cta-section { padding: 100px 5%; text-align: center; max-width: 700px; margin: 0 auto; }
+  .cta-section h2 { margin-bottom: 16px; }
+  .cta-section p { color: var(--muted); font-size: 18px; margin-bottom: 36px; font-weight: 300; }
+
+  footer { border-top: 1px solid var(--border); padding: 32px 5%; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; position: relative; z-index: 1; }
+  footer p { font-size: 13px; color: var(--muted2); }
+  .footer-links { display: flex; gap: 24px; }
+  .footer-links a { font-size: 13px; color: var(--muted2); text-decoration: none; transition: color 0.2s; }
+  .footer-links a:hover { color: var(--text); }
+
+  .orb { position: absolute; border-radius: 50%; filter: blur(100px); pointer-events: none; z-index: 0; }
+  .orb-1 { width: 600px; height: 600px; background: rgba(200,255,0,0.06); top: -200px; left: 50%; transform: translateX(-50%); }
+  .orb-2 { width: 400px; height: 400px; background: rgba(93,100,255,0.08); bottom: 100px; right: -100px; }
+
+  @media (max-width: 700px) {
+    .nav-links { display: none; }
+    .free-card { padding: 32px 20px; }
+    .free-perks { gap: 16px; flex-direction: column; align-items: flex-start; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="#" class="nav-logo">
+    <div class="logo-mark">📚</div>
+    <span class="logo-name">StudySnap</span>
+  </a>
+  <ul class="nav-links">
+    <li><a href="#how">How it works</a></li>
+    <li><a href="#features">Features</a></li>
+    <li><a href="#free">Always free</a></li>
+  </ul>
+  <a href="app.html" class="nav-cta">Start studying →</a>
+</nav>
+
+<section class="hero">
+  <div class="orb orb-1"></div>
+  <div class="free-badge">✓ 100% free — no account needed</div>
+  <div class="hero-badge">
+    <span></span>
+    AI-powered studying — no more manual flashcards
+  </div>
+  <h1>Snap your notes.<br><em>Master any subject.</em></h1>
+  <p class="hero-sub">Upload a photo of your notes, textbook, or whiteboard. StudySnap turns it into flashcards, quizzes, and key points in seconds. Free, forever.</p>
+  <div class="hero-btns">
+    <a href="app.html" class="btn-primary">Start studying for free →</a>
+    <a href="#how" class="btn-secondary">See how it works</a>
+  </div>
+  <div class="hero-demo">
+    <div class="demo-bar">
+      <div class="dot r"></div><div class="dot y"></div><div class="dot g"></div>
+      <span class="demo-url">studysnap.app</span>
+    </div>
+    <div class="demo-inner">
+      <div class="demo-step">
+        <div class="step-num">1</div>
+        <div class="step-text"><strong>Upload a photo</strong> of your notes or type any topic you need to study</div>
+      </div>
+      <div class="demo-step">
+        <div class="step-num">2</div>
+        <div class="step-text"><strong>Choose your format</strong> — flashcards, multiple choice quiz, or key points summary</div>
+      </div>
+      <div class="demo-step">
+        <div class="step-num">3</div>
+        <div class="step-text"><strong>Study instantly</strong> — your personalized materials are ready in under 5 seconds</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div style="max-width:1100px; margin:0 auto; padding:0 5%; position:relative; z-index:1;">
+  <div class="ad-banner">Advertisement — Google AdSense (728×90)</div>
+</div>
+
+<div class="stats">
+  <div class="stat"><div class="stat-num">10x</div><div class="stat-label">Faster than making flashcards manually</div></div>
+  <div class="stat"><div class="stat-num">3</div><div class="stat-label">Study formats in one app</div></div>
+  <div class="stat"><div class="stat-num">$0</div><div class="stat-label">Forever — no credit card, no sign up</div></div>
+</div>
+
+<section class="how" id="how">
+  <div class="section-label">How it works</div>
+  <h2>From notes to knowledge<br>in three steps</h2>
+  <p class="section-sub">No account. No setup. Just snap and study.</p>
+  <div class="steps-grid">
+    <div class="step-card">
+      <div class="step-icon">📸</div>
+      <h3>Snap or type</h3>
+      <p>Take a photo of any study material — handwritten notes, textbook pages, whiteboards, slides — or simply type a topic you need to learn.</p>
+    </div>
+    <div class="step-card">
+      <div class="step-icon">⚡</div>
+      <h3>AI does the work</h3>
+      <p>Our AI reads your material and instantly generates tailored study content. No copy-pasting, no formatting, no wasted time.</p>
+    </div>
+    <div class="step-card">
+      <div class="step-icon">🧠</div>
+      <h3>Study and retain</h3>
+      <p>Flip through flashcards, test yourself with quizzes, or review key points. Focus on what you don't know yet.</p>
+    </div>
+  </div>
+</section>
+
+<section class="features" id="features">
+  <div class="section-label">Features</div>
+  <h2>Everything you need<br>to study smarter</h2>
+  <div class="features-grid">
+    <div class="feature-pill"><div class="feature-icon">🃏</div><div><h4>Flashcards</h4><p>Flip-card format with got it / study again tracking</p></div></div>
+    <div class="feature-pill"><div class="feature-icon">✅</div><div><h4>Practice quizzes</h4><p>Multiple choice with instant right/wrong feedback</p></div></div>
+    <div class="feature-pill"><div class="feature-icon">📋</div><div><h4>Key points</h4><p>Bullet summary of the most important concepts</p></div></div>
+    <div class="feature-pill"><div class="feature-icon">📷</div><div><h4>Photo upload</h4><p>Works with handwriting, printed text, and diagrams</p></div></div>
+    <div class="feature-pill"><div class="feature-icon">⌨️</div><div><h4>Topic mode</h4><p>No notes? Just type any subject and get materials instantly</p></div></div>
+    <div class="feature-pill"><div class="feature-icon">📱</div><div><h4>Works everywhere</h4><p>Phone, tablet, laptop — no app download needed</p></div></div>
+  </div>
+</section>
+
+<div style="max-width:1100px; margin:0 auto; padding:0 5%; position:relative; z-index:1;">
+  <div class="ad-banner">Advertisement — Google AdSense (728×90)</div>
+</div>
+
+<section class="free-section" id="free">
+  <div class="free-card">
+    <div class="section-label">Always free</div>
+    <h2>Free forever.<br>No catch.</h2>
+    <p>StudySnap is completely free — no account, no credit card, no usage limits. We keep the lights on with ads, so you never pay a cent.</p>
+    <div class="free-perks">
+      <div class="free-perk">Unlimited generations</div>
+      <div class="free-perk">No sign-up required</div>
+      <div class="free-perk">All 3 study formats</div>
+      <div class="free-perk">Photo upload included</div>
+    </div>
+    <a href="app.html" class="btn-primary">Start studying now →</a>
+    <div class="ad-explain">
+      <strong>How we stay free:</strong> StudySnap is supported by ads. We use Google AdSense, which shows relevant ads based on page content — not your personal data. The ads are what let us offer this tool at no cost to every student.
+    </div>
+  </div>
+</section>
+
+<div style="max-width:1100px; margin:0 auto; padding:0 5% 40px; position:relative; z-index:1; display:flex; gap:20px; justify-content:center; flex-wrap:wrap;">
+  <div class="ad-banner" style="width:300px; height:250px; max-width:100%;">Advertisement — AdSense (300×250)</div>
+  <div class="ad-banner" style="width:300px; height:250px; max-width:100%;">Advertisement — AdSense (300×250)</div>
+</div>
+
+<section class="cta-section">
+  <div class="orb orb-2"></div>
+  <div class="section-label">Get started</div>
+  <h2>Stop wasting time making<br>flashcards manually.</h2>
+  <p>It's free. Open it, snap your notes, start studying.</p>
+  <a href="app.html" class="btn-primary">Try StudySnap free →</a>
+</section>
+
+<footer>
+  <p>© 2025 StudySnap. Free for students, always.</p>
+  <div class="footer-links">
+    <a href="privacy.html">Privacy</a>
+    <a href="terms.html">Terms</a>
+    <a href="mailto:hello@studysnap.app">Contact</a>
+  </div>
+</footer>
+
+</body>
+</html>
