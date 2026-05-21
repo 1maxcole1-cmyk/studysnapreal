@@ -7,7 +7,17 @@ export default async function handler(req, res) {
   // Get the API key from environment variables (never exposed to the browser)
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
-    return res.status(500).json({ error: 'API key not configured' });
+    // Diagnostic: report which env var NAMES exist (never the secret values)
+    const visibleVars = Object.keys(process.env)
+      .filter(k => /KEY|GEMINI|API|TOKEN/i.test(k));
+    return res.status(500).json({
+      error: 'API key not configured',
+      debug: {
+        geminiKeyExists: typeof process.env.GEMINI_API_KEY !== 'undefined',
+        geminiKeyLength: (process.env.GEMINI_API_KEY || '').length,
+        relatedVarNames: visibleVars
+      }
+    });
   }
 
   try {
