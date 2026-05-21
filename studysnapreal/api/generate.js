@@ -65,7 +65,7 @@ export default async function handler(req, res) {
         },
         body: JSON.stringify({
           systemInstruction: {
-            parts: [{ text: 'You are a helpful study assistant. Always respond with valid JSON only — no markdown, no extra text, no code fences.' }]
+            parts: [{ text: 'You are a helpful study assistant. Always respond with valid JSON only â€” no markdown, no extra text, no code fences.' }]
           },
           contents: [{ role: 'user', parts }],
           generationConfig: {
@@ -79,7 +79,10 @@ export default async function handler(req, res) {
     if (!geminiRes.ok) {
       const err = await geminiRes.text();
       console.error('Gemini API error:', err);
-      return res.status(502).json({ error: 'AI service error. Please try again.' });
+      return res.status(502).json({
+        error: 'AI service error. Please try again.',
+        debug: { geminiStatus: geminiRes.status, geminiError: err }
+      });
     }
 
     const data = await geminiRes.json();
