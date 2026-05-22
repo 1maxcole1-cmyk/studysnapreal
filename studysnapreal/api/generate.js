@@ -7,17 +7,7 @@ export default async function handler(req, res) {
   // Get the API key from environment variables (never exposed to the browser)
   const apiKey = process.env.GROQ_API_KEY;
   if (!apiKey) {
-    // Diagnostic: report which env var NAMES exist (never the secret values)
-    const visibleVars = Object.keys(process.env)
-      .filter(k => /KEY|GROQ|API|TOKEN/i.test(k));
-    return res.status(500).json({
-      error: 'API key not configured',
-      debug: {
-        groqKeyExists: typeof process.env.GROQ_API_KEY !== 'undefined',
-        groqKeyLength: (process.env.GROQ_API_KEY || '').length,
-        relatedVarNames: visibleVars
-      }
-    });
+    return res.status(500).json({ error: 'AI is not set up correctly. Please try again later.' });
   }
 
   try {
@@ -71,12 +61,10 @@ export default async function handler(req, res) {
     });
 
     if (!groqRes.ok) {
+      // Log full details server-side only (visible in Vercel logs, never to users)
       const err = await groqRes.text();
-      console.error('Groq API error:', err);
-      return res.status(502).json({
-        error: 'AI service error. Please try again.',
-        debug: { groqStatus: groqRes.status, groqError: err }
-      });
+      console.error('Groq API error:', groqRes.status, err);
+      return res.status(502).json({ error: 'AI service error. Please try again.' });
     }
 
     const data = await groqRes.json();
