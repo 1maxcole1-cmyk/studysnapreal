@@ -19,9 +19,9 @@ export default async function handler(req, res) {
     }
 
     const modePrompts = {
-      flashcards: `Generate exactly 8 flashcards from this material. Return ONLY valid JSON: {"cards":[{"front":"Question or term","back":"Answer or definition"},...]}. Cover the most important concepts. No preamble, no markdown.`,
-      quiz: `Generate a 6-question multiple choice quiz. Return ONLY valid JSON: {"questions":[{"question":"...","options":["A","B","C","D"],"correct":0},...]} where correct is the 0-based index. No preamble, no markdown.`,
-      summary: `Extract the 8-10 most important key points to study. Return ONLY valid JSON: {"points":["Key point 1","Key point 2",...]}. Make each concise and clear. No preamble, no markdown.`
+      flashcards: `Generate exactly 14 flashcards from this material. Return ONLY valid JSON: {"cards":[{"front":"Question or term","back":"Answer or definition"},...]}. Cover the most important concepts thoroughly. No preamble, no markdown.`,
+      quiz: `Generate exactly 15 multiple choice questions. Return ONLY valid JSON: {"questions":[{"question":"...","options":["A","B","C","D"],"correct":0},...]} where correct is the 0-based index. Make the questions varied in difficulty and cover the material thoroughly. No preamble, no markdown.`,
+      summary: `Extract the 12-14 most important key points to study. Return ONLY valid JSON: {"points":["Key point 1","Key point 2",...]}. Make each concise and clear. No preamble, no markdown.`
     };
 
     if (!modePrompts[mode]) {
@@ -54,7 +54,7 @@ export default async function handler(req, res) {
           { role: 'system', content: 'You are a helpful study assistant. Always respond with valid JSON only â€” no markdown, no extra text, no code fences.' },
           { role: 'user', content: userContent }
         ],
-        max_tokens: 2048,
+        max_tokens: 4096,
         temperature: 0.7,
         response_format: { type: 'json_object' }
       })
