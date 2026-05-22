@@ -290,7 +290,6 @@
         <li>Export to PDF &amp; Anki</li>
         <li>Bigger sets — up to 20 cards</li>
         <li>AI explanations on answers</li>
-        <li>Cloud sync across devices</li>
         <li>Early access to new features</li>
       </ul>
       <a href="app.html" class="pc-btn">Get Premium →</a>
@@ -327,7 +326,8 @@
   // Pro / Premium members see no ads — hide every ad slot for them.
   // When you add real Google AdSense code, also wrap the ad <ins> tags
   // so they only load when this check is false.
-  if (localStorage.getItem('snapwise_pro') === 'true') {
+  var sp = localStorage.getItem('snapwise_plan');
+  if (sp === 'pro' || sp === 'premium') {
     document.querySelectorAll('.ad-banner').forEach(function (el) { el.style.display = 'none'; });
   }
 </script>
