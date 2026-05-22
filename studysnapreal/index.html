@@ -323,5 +323,14 @@
   </div>
 </footer>
 
+<script>
+  // Pro / Premium members see no ads — hide every ad slot for them.
+  // When you add real Google AdSense code, also wrap the ad <ins> tags
+  // so they only load when this check is false.
+  if (localStorage.getItem('snapwise_pro') === 'true') {
+    document.querySelectorAll('.ad-banner').forEach(function (el) { el.style.display = 'none'; });
+  }
+</script>
+
 </body>
 </html>
