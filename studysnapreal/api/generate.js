@@ -11,16 +11,23 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { mode, topic, imageBase64, imageType, isPro } = req.body || {};
+    const { mode, topic, imageBase64, imageType, plan } = req.body || {};
 
     // Validate inputs
     if (!mode || (!topic && !imageBase64)) {
       return res.status(400).json({ error: 'Missing required fields' });
     }
 
+    // Premium members get bigger study sets and quiz answer explanations
+    const premium = plan === 'premium';
+    const fcCount = premium ? 20 : 14;
+    const quizCount = premium ? 20 : 15;
+    const explainField = premium ? ',"explanation":"one-sentence explanation of why the correct answer is right"' : '';
+    const explainNote = premium ? ' Include a clear one-sentence explanation for every question.' : '';
+
     const modePrompts = {
-      flashcards: `Generate exactly 14 flashcards from this material. Return ONLY valid JSON: {"cards":[{"front":"Question or term","back":"Answer or definition"},...]}. Cover the most important concepts thoroughly. No preamble, no markdown.`,
-      quiz: `Generate exactly 15 multiple choice questions. Return ONLY valid JSON: {"questions":[{"question":"...","options":["A","B","C","D"],"correct":0},...]} where correct is the 0-based index. Make the questions varied in difficulty and cover the material thoroughly. No preamble, no markdown.`,
+      flashcards: `Generate exactly ${fcCount} flashcards from this material. Return ONLY valid JSON: {"cards":[{"front":"Question or term","back":"Answer or definition"},...]}. Cover the most important concepts thoroughly. No preamble, no markdown.`,
+      quiz: `Generate exactly ${quizCount} multiple choice questions. Return ONLY valid JSON: {"questions":[{"question":"...","options":["A","B","C","D"],"correct":0${explainField}},...]} where correct is the 0-based index.${explainNote} Make the questions varied in difficulty and cover the material thoroughly. No preamble, no markdown.`,
       summary: `Extract the 12-14 most important key points to study. Return ONLY valid JSON: {"points":["Key point 1","Key point 2",...]}. Make each concise and clear. No preamble, no markdown.`
     };
 
@@ -41,8 +48,8 @@ export default async function handler(req, res) {
     }
 
     // Call the Groq API server-side (API key stays secret).
-    // Pro/Premium members get the larger, smarter model; free users get the fast one.
-    const model = isPro
+    // Paid members (Pro or Premium) get the larger, smarter model.
+    const model = (plan === 'pro' || plan === 'premium')
       ? 'meta-llama/llama-4-maverick-17b-128e-instruct'
       : 'meta-llama/llama-4-scout-17b-16e-instruct';
     const groqRes = await fetch('https://api.groq.com/openai/v1/chat/completions', {
