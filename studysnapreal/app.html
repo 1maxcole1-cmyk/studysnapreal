@@ -761,9 +761,15 @@
   }
   .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
+  /* PRO / PREMIUM — completely ad-free, no empty ad spaces */
+  body.pro .ad-inline,
+  body.pro .ad-sidebar,
+  body.pro #ad-after-results { display: none !important; }
+  body.pro .layout { grid-template-columns: 260px 1fr; }
+
   /* RESPONSIVE */
   @media (max-width: 900px) {
-    .layout { grid-template-columns: 1fr; grid-template-rows: 60px auto 1fr; }
+    .layout, body.pro .layout { grid-template-columns: 1fr; grid-template-rows: 60px auto 1fr; }
     .sidebar, .ad-sidebar { display: none; }
     main { padding: 20px 16px; max-width: 100%; }
     .mobile-nav {
@@ -1031,6 +1037,7 @@
     return Math.max(0, FREE_LIMIT - getUsage().count);
   }
   function updateUsageBadge() {
+    document.body.classList.toggle('pro', isPro());
     const badge = document.getElementById('usage-badge');
     const upBtn = document.getElementById('nav-upgrade');
     const sidePro = document.getElementById('sidebar-pro');
