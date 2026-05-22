@@ -5,16 +5,16 @@ export default async function handler(req, res) {
   }
 
   // Get the API key from environment variables (never exposed to the browser)
-  const apiKey = process.env.GEMINI_API_KEY;
+  const apiKey = process.env.GROQ_API_KEY;
   if (!apiKey) {
     // Diagnostic: report which env var NAMES exist (never the secret values)
     const visibleVars = Object.keys(process.env)
-      .filter(k => /KEY|GEMINI|API|TOKEN/i.test(k));
+      .filter(k => /KEY|GROQ|API|TOKEN/i.test(k));
     return res.status(500).json({
       error: 'API key not configured',
       debug: {
-        geminiKeyExists: typeof process.env.GEMINI_API_KEY !== 'undefined',
-        geminiKeyLength: (process.env.GEMINI_API_KEY || '').length,
+        groqKeyExists: typeof process.env.GROQ_API_KEY !== 'undefined',
+        groqKeyLength: (process.env.GROQ_API_KEY || '').length,
         relatedVarNames: visibleVars
       }
     });
@@ -38,60 +38,52 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Invalid mode' });
     }
 
-    // Build the message parts for Gemini
-    const parts = [];
+    // Build the user message for Groq (OpenAI-compatible chat format)
+    let userContent;
     if (imageBase64) {
-      parts.push({
-        inline_data: { mime_type: imageType || 'image/jpeg', data: imageBase64 }
-      });
-      parts.push({
-        text: `Based on this image${topic ? ' about ' + topic : ''}, ${modePrompts[mode]}`
-      });
+      const dataUrl = `data:${imageType || 'image/jpeg'};base64,${imageBase64}`;
+      userContent = [
+        { type: 'text', text: `Based on this image${topic ? ' about ' + topic : ''}, ${modePrompts[mode]}` },
+        { type: 'image_url', image_url: { url: dataUrl } }
+      ];
     } else {
-      parts.push({
-        text: `Topic: ${topic}\n\n${modePrompts[mode]}`
-      });
+      userContent = `Topic: ${topic}\n\n${modePrompts[mode]}`;
     }
 
-    // Call the Google Gemini API server-side (API key stays secret)
-    const model = 'gemini-2.0-flash';
-    const geminiRes = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-goog-api-key': apiKey
-        },
-        body: JSON.stringify({
-          systemInstruction: {
-            parts: [{ text: 'You are a helpful study assistant. Always respond with valid JSON only â€” no markdown, no extra text, no code fences.' }]
-          },
-          contents: [{ role: 'user', parts }],
-          generationConfig: {
-            maxOutputTokens: 2048,
-            responseMimeType: 'application/json'
-          }
-        })
-      }
-    );
+    // Call the Groq API server-side (API key stays secret)
+    const model = 'meta-llama/llama-4-scout-17b-16e-instruct';
+    const groqRes = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey}`
+      },
+      body: JSON.stringify({
+        model,
+        messages: [
+          { role: 'system', content: 'You are a helpful study assistant. Always respond with valid JSON only â€” no markdown, no extra text, no code fences.' },
+          { role: 'user', content: userContent }
+        ],
+        max_tokens: 2048,
+        temperature: 0.7,
+        response_format: { type: 'json_object' }
+      })
+    });
 
-    if (!geminiRes.ok) {
-      const err = await geminiRes.text();
-      console.error('Gemini API error:', err);
+    if (!groqRes.ok) {
+      const err = await groqRes.text();
+      console.error('Groq API error:', err);
       return res.status(502).json({
         error: 'AI service error. Please try again.',
-        debug: { geminiStatus: geminiRes.status, geminiError: err }
+        debug: { groqStatus: groqRes.status, groqError: err }
       });
     }
 
-    const data = await geminiRes.json();
-    const text = (data.candidates?.[0]?.content?.parts || [])
-      .map(p => p.text || '')
-      .join('');
+    const data = await groqRes.json();
+    const text = data.choices?.[0]?.message?.content || '';
 
     if (!text) {
-      console.error('Empty Gemini response:', JSON.stringify(data));
+      console.error('Empty Groq response:', JSON.stringify(data));
       return res.status(502).json({ error: 'AI service returned no content. Please try again.' });
     }
 
