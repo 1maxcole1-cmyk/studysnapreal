@@ -1,0 +1,1567 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Snapwise — Generate Study Materials</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #06060f;
+    --surface: #0c0c1e;
+    --surface2: #12122a;
+    --border: rgba(255,255,255,0.07);
+    --border2: rgba(255,255,255,0.12);
+    --accent: #c8ff00;
+    --accent-dim: rgba(200,255,0,0.1);
+    --accent-glow: rgba(200,255,0,0.2);
+    --text: #f0f0ff;
+    --muted: #7070a0;
+    --muted2: #3a3a60;
+    --danger: #ff5757;
+    --good: #5dc864;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(200,255,0,0.02) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(200,255,0,0.02) 1px, transparent 1px);
+    background-size: 64px 64px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* LAYOUT */
+  .layout {
+    display: grid;
+    grid-template-columns: 260px 1fr 220px;
+    grid-template-rows: 60px 1fr;
+    min-height: 100vh;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* NAV */
+  nav {
+    grid-column: 1 / -1;
+    background: rgba(6,6,15,0.9);
+    backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 24px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .nav-logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+  .logo-mark { width: 30px; height: 30px; background: var(--accent); border-radius: 7px; display: flex; align-items: center; justify-content: center; font-size: 16px; }
+  .logo-name { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 17px; color: var(--text); }
+  .nav-right { display: flex; align-items: center; gap: 12px; }
+  .nav-back { color: var(--muted); font-size: 13px; text-decoration: none; transition: color 0.2s; }
+  .nav-back:hover { color: var(--text); }
+  .usage-badge {
+    background: var(--surface2);
+    border: 1px solid var(--border2);
+    border-radius: 100px;
+    padding: 5px 14px;
+    font-size: 12px;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+  .usage-badge strong { color: var(--accent); }
+  .btn-upgrade {
+    background: var(--accent);
+    color: #06060f;
+    border: none;
+    border-radius: 100px;
+    padding: 6px 16px;
+    font-size: 12px;
+    font-weight: 600;
+    font-family: 'DM Sans', sans-serif;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+  .btn-upgrade:hover { box-shadow: 0 0 18px var(--accent-glow); transform: translateY(-1px); }
+  .pro-badge {
+    background: var(--accent-dim);
+    border: 1px solid rgba(200,255,0,0.3);
+    color: var(--accent);
+    border-radius: 100px;
+    padding: 5px 14px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  /* SIDEBAR */
+  .sidebar {
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    padding: 24px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .sidebar-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--muted2);
+    font-weight: 600;
+    padding: 0 10px;
+    margin-bottom: 4px;
+    margin-top: 18px;
+  }
+  .sidebar-label:first-child { margin-top: 0; }
+  .sidebar-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 12px;
+    border-radius: 8px;
+    font-size: 14px;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.15s;
+    border: 1px solid transparent;
+    background: transparent;
+    width: 100%;
+    text-align: left;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .sidebar-item:hover { background: var(--surface2); color: var(--text); }
+  .sidebar-item.active { background: var(--accent-dim); color: var(--accent); border-color: rgba(200,255,0,0.15); }
+  .sidebar-item .icon { font-size: 16px; width: 20px; text-align: center; }
+  .sidebar-spacer { flex: 1; }
+  .sidebar-pro {
+    margin-top: 12px;
+    background: linear-gradient(160deg, rgba(200,255,0,0.08), rgba(200,255,0,0.02));
+    border: 1px solid rgba(200,255,0,0.18);
+    border-radius: 12px;
+    padding: 16px;
+  }
+  .sidebar-pro h4 { font-family: 'Syne', sans-serif; font-size: 14px; margin-bottom: 4px; }
+  .sidebar-pro p { font-size: 12px; color: var(--muted); margin-bottom: 12px; }
+  .sidebar-pro button {
+    width: 100%;
+    background: var(--accent);
+    color: #06060f;
+    border: none;
+    border-radius: 8px;
+    padding: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    font-family: 'DM Sans', sans-serif;
+    cursor: pointer;
+  }
+
+  /* MOBILE NAV */
+  .mobile-nav { display: none; }
+
+  /* MAIN */
+  main {
+    padding: 32px 40px;
+    overflow-y: auto;
+    max-width: 760px;
+  }
+
+  /* AD SIDEBAR */
+  .ad-sidebar {
+    border-left: 1px solid var(--border);
+    padding: 24px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .ad-unit {
+    background: var(--surface2);
+    border: 1px dashed var(--muted2);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--muted2);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    text-align: center;
+    padding: 8px;
+  }
+  .ad-unit.tall { height: 250px; }
+  .ad-unit.medium { height: 150px; }
+  .ad-sidebar-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--muted2);
+    text-align: center;
+  }
+
+  /* SECTION HEAD */
+  .section-head { margin-bottom: 24px; }
+  .page-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 24px;
+    font-weight: 700;
+    margin-bottom: 6px;
+    letter-spacing: -0.02em;
+  }
+  .page-sub { color: var(--muted); font-size: 14px; }
+
+  .upload-zone {
+    border: 1.5px dashed var(--border2);
+    border-radius: 14px;
+    padding: 32px 24px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: var(--surface);
+    position: relative;
+    margin-bottom: 12px;
+  }
+  .upload-zone:hover { border-color: rgba(200,255,0,0.3); background: rgba(200,255,0,0.03); }
+  .upload-zone.has-image { border-color: var(--accent); border-style: solid; }
+  .upload-zone input[type=file] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+  .upload-icon { font-size: 36px; margin-bottom: 12px; }
+  .upload-text { font-size: 14px; color: var(--muted); }
+  .upload-text strong { color: var(--text); }
+  .preview-img { max-height: 160px; border-radius: 8px; margin-top: 16px; object-fit: contain; }
+
+  .divider {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: var(--muted2);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin: 16px 0;
+  }
+  .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+  .topic-input {
+    width: 100%;
+    padding: 12px 16px;
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    border-radius: 10px;
+    color: var(--text);
+    font-size: 14px;
+    font-family: 'DM Sans', sans-serif;
+    resize: none;
+    transition: border-color 0.2s;
+  }
+  .topic-input:focus { outline: none; border-color: rgba(200,255,0,0.4); }
+  .topic-input::placeholder { color: var(--muted2); }
+
+  .mode-label { font-size: 13px; color: var(--muted); margin: 20px 0 10px; }
+  .mode-row { display: flex; gap: 10px; }
+  .mode-btn {
+    flex: 1;
+    padding: 12px 10px;
+    border: 1px solid var(--border2);
+    border-radius: 10px;
+    background: var(--surface);
+    color: var(--muted);
+    font-size: 13px;
+    font-family: 'DM Sans', sans-serif;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.15s;
+  }
+  .mode-btn .micon { font-size: 20px; }
+  .mode-btn:hover { color: var(--text); background: var(--surface2); }
+  .mode-btn.active { border-color: var(--accent); color: var(--accent); background: var(--accent-dim); }
+  .mode-btn { position: relative; }
+  .pro-pill {
+    position: absolute;
+    top: -8px; right: -6px;
+    background: var(--accent);
+    color: #06060f;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    padding: 2px 7px;
+    border-radius: 100px;
+  }
+
+  .generate-btn {
+    width: 100%;
+    padding: 14px;
+    background: var(--accent);
+    color: #06060f;
+    border: none;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 600;
+    font-family: 'DM Sans', sans-serif;
+    cursor: pointer;
+    margin-top: 20px;
+    transition: all 0.2s;
+    box-shadow: 0 0 20px var(--accent-glow);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+  .generate-btn:hover { box-shadow: 0 0 36px rgba(200,255,0,0.32); transform: translateY(-1px); }
+  .generate-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; box-shadow: none; }
+
+  .limit-note { margin-top: 14px; }
+  .limit-note .ln-box {
+    background: var(--surface2);
+    border: 1px solid var(--border2);
+    border-radius: 10px;
+    padding: 12px 16px;
+    font-size: 13px;
+    color: var(--muted);
+  }
+  .limit-note a { color: var(--accent); cursor: pointer; text-decoration: underline; }
+
+  /* AD INLINE */
+  .ad-inline {
+    background: var(--surface2);
+    border: 1px dashed var(--muted2);
+    border-radius: 10px;
+    height: 90px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--muted2);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin: 20px 0;
+  }
+
+  /* LOADING */
+  .loading { text-align: center; padding: 60px 0; }
+  .spinner {
+    width: 36px; height: 36px;
+    border: 2px solid var(--border2);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin: 0 auto 16px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .loading p { color: var(--muted); font-size: 14px; }
+  .loading strong { color: var(--accent); font-weight: 500; }
+
+  /* RESULTS */
+  .results-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+  }
+  .results-title { font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 700; }
+  .results-meta { font-size: 13px; color: var(--muted); }
+  .toolbar { display: flex; gap: 8px; }
+  .tool-btn {
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    border-radius: 8px;
+    color: var(--muted);
+    font-size: 12px;
+    font-family: 'DM Sans', sans-serif;
+    padding: 6px 12px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .tool-btn:hover { color: var(--accent); border-color: rgba(200,255,0,0.3); }
+  .progress-bar { height: 3px; background: var(--border2); border-radius: 2px; margin-bottom: 20px; }
+  .progress-fill { height: 100%; background: var(--accent); border-radius: 2px; transition: width 0.4s; box-shadow: 0 0 8px var(--accent-glow); }
+
+  /* FLASHCARDS */
+  .fc-nav { display: flex; align-items: center; gap: 14px; justify-content: center; margin-bottom: 16px; }
+  .nav-btn {
+    width: 36px; height: 36px;
+    border: 1px solid var(--border2);
+    border-radius: 50%;
+    background: var(--surface);
+    color: var(--muted);
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+    transition: all 0.15s;
+  }
+  .nav-btn:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
+  .nav-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+  .card-counter { font-size: 13px; color: var(--muted); min-width: 60px; text-align: center; }
+
+  .flashcard {
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    border-radius: 16px;
+    padding: 40px 28px;
+    min-height: 220px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+  }
+  .flashcard:hover { border-color: rgba(200,255,0,0.2); box-shadow: 0 0 30px rgba(200,255,0,0.05); }
+  .card-side {
+    position: absolute;
+    top: 14px; left: 18px;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--muted2);
+    font-weight: 600;
+  }
+  .card-side.answer { color: var(--accent); }
+  .card-q { font-size: 18px; font-weight: 500; line-height: 1.5; }
+  .card-a { font-size: 16px; color: var(--muted); line-height: 1.6; }
+  .card-tap { margin-top: 16px; font-size: 12px; color: var(--muted2); }
+
+  .flip-row { display: flex; gap: 10px; margin-top: 14px; }
+  .flip-btn {
+    flex: 1; padding: 10px;
+    border-radius: 10px;
+    font-size: 13px; font-weight: 500;
+    font-family: 'DM Sans', sans-serif;
+    cursor: pointer;
+    border: 1px solid var(--border2);
+    background: var(--surface);
+    color: var(--muted);
+    transition: all 0.15s;
+  }
+  .flip-btn.gotit { border-color: rgba(93,200,100,0.4); color: var(--good); }
+  .flip-btn.gotit:hover { background: rgba(93,200,100,0.08); }
+  .flip-btn.again:hover { background: var(--surface2); color: var(--text); }
+  .kbd-hint { text-align: center; font-size: 12px; color: var(--muted2); margin-top: 14px; }
+
+  /* QUIZ */
+  .q-num { font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted2); margin-bottom: 8px; }
+  .q-text { font-size: 17px; font-weight: 500; line-height: 1.5; margin-bottom: 18px; }
+  .option {
+    width: 100%;
+    text-align: left;
+    padding: 12px 16px;
+    margin-bottom: 10px;
+    border: 1px solid var(--border2);
+    border-radius: 10px;
+    background: var(--surface);
+    color: var(--text);
+    font-size: 14px;
+    font-family: 'DM Sans', sans-serif;
+    cursor: pointer;
+    transition: all 0.15s;
+    line-height: 1.4;
+  }
+  .option:hover:not(:disabled) { border-color: rgba(200,255,0,0.3); background: var(--accent-dim); }
+  .option.correct { border-color: var(--good); background: rgba(93,200,100,0.1); color: var(--good); }
+  .option.wrong { border-color: var(--danger); background: rgba(255,87,87,0.1); color: var(--danger); }
+  .option:disabled { cursor: default; }
+
+  .score-wrap { text-align: center; padding: 36px 20px; }
+  .score-circle {
+    width: 120px; height: 120px;
+    border: 3px solid var(--accent);
+    border-radius: 50%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 20px;
+    box-shadow: 0 0 40px var(--accent-glow);
+  }
+  .score-pct { font-family: 'Syne', sans-serif; font-size: 32px; font-weight: 800; color: var(--accent); }
+  .score-sub { font-size: 12px; color: var(--muted); }
+  .score-wrap h3 { font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 700; margin-bottom: 8px; }
+  .score-wrap p { color: var(--muted); font-size: 14px; margin-bottom: 24px; }
+  .score-actions { display: flex; flex-direction: column; gap: 10px; max-width: 320px; margin: 0 auto; }
+  .retry-btn {
+    padding: 12px 24px;
+    background: var(--accent);
+    color: #06060f;
+    border: none;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    font-family: 'DM Sans', sans-serif;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .retry-btn:hover { box-shadow: 0 0 20px var(--accent-glow); }
+  .retry-btn.alt {
+    background: transparent;
+    color: var(--accent);
+    border: 1px solid rgba(200,255,0,0.4);
+  }
+  .retry-btn.alt:hover { background: var(--accent-dim); box-shadow: none; }
+
+  /* KEY POINTS */
+  .point-item {
+    display: flex;
+    gap: 14px;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--border);
+    align-items: flex-start;
+  }
+  .point-item:last-child { border-bottom: none; }
+  .point-num {
+    width: 26px; height: 26px;
+    background: var(--accent-dim);
+    border: 1px solid rgba(200,255,0,0.2);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 600; color: var(--accent);
+    flex-shrink: 0; margin-top: 1px;
+  }
+  .point-text { font-size: 14px; line-height: 1.7; color: var(--text); }
+
+  /* BACK BTN */
+  .back-btn {
+    margin-top: 24px;
+    width: 100%;
+    padding: 11px;
+    border: 1px solid var(--border2);
+    border-radius: 10px;
+    background: transparent;
+    color: var(--muted);
+    font-size: 13px;
+    font-family: 'DM Sans', sans-serif;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .back-btn:hover { color: var(--text); background: var(--surface); }
+
+  /* ERROR */
+  .error {
+    background: rgba(255,87,87,0.1);
+    border: 1px solid rgba(255,87,87,0.3);
+    border-radius: 10px;
+    padding: 12px 16px;
+    font-size: 13px;
+    color: #ff7a7a;
+    margin-top: 14px;
+  }
+
+  /* HISTORY */
+  .hist-tabs { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+  .hist-tab {
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    border-radius: 100px;
+    color: var(--muted);
+    font-size: 13px;
+    font-family: 'DM Sans', sans-serif;
+    padding: 6px 16px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .hist-tab:hover { color: var(--text); }
+  .hist-tab.active { background: var(--accent-dim); border-color: rgba(200,255,0,0.3); color: var(--accent); }
+  .history-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
+  .history-card {
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    border-radius: 12px;
+    padding: 16px;
+    transition: all 0.15s;
+  }
+  .history-card:hover { border-color: rgba(200,255,0,0.2); }
+  .hc-top { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+  .hc-icon { font-size: 16px; }
+  .hc-type { font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); font-weight: 600; }
+  .hc-date { margin-left: auto; font-size: 12px; color: var(--muted2); }
+  .hc-topic { font-size: 15px; font-weight: 500; margin-bottom: 4px; line-height: 1.4; }
+  .hc-meta { font-size: 12px; color: var(--muted); margin-bottom: 14px; }
+  .hc-actions { display: flex; gap: 8px; }
+  .hc-open, .hc-del {
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 500;
+    font-family: 'DM Sans', sans-serif;
+    padding: 7px 14px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .hc-open { flex: 1; background: var(--accent); color: #06060f; border: none; }
+  .hc-open:hover { box-shadow: 0 0 14px var(--accent-glow); }
+  .hc-del { background: transparent; border: 1px solid var(--border2); color: var(--muted); }
+  .hc-del:hover { color: var(--danger); border-color: rgba(255,87,87,0.4); }
+  .empty-state { text-align: center; padding: 60px 20px; }
+  .empty-icon { font-size: 44px; margin-bottom: 14px; }
+  .empty-state p { color: var(--muted); font-size: 14px; margin-bottom: 20px; }
+
+  /* SETTINGS */
+  .settings-card {
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    border-radius: 12px;
+    padding: 6px 18px;
+    margin-bottom: 14px;
+  }
+  .settings-card.about { padding: 18px; }
+  .sc-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .sc-row:last-child { border-bottom: none; }
+  .sc-title { font-size: 14px; font-weight: 500; }
+  .sc-sub { font-size: 13px; color: var(--muted); margin-top: 2px; }
+  .btn-danger {
+    background: transparent;
+    border: 1px solid rgba(255,87,87,0.35);
+    color: #ff7a7a;
+    border-radius: 8px;
+    font-size: 13px;
+    font-family: 'DM Sans', sans-serif;
+    padding: 8px 16px;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .btn-danger:hover { background: rgba(255,87,87,0.1); }
+
+  /* MODAL */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(3,3,10,0.8);
+    backdrop-filter: blur(6px);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+  .modal-overlay.show { display: flex; }
+  .modal {
+    background: var(--surface);
+    border: 1px solid rgba(200,255,0,0.2);
+    border-radius: 18px;
+    max-width: 420px;
+    width: 100%;
+    padding: 32px 28px;
+    text-align: center;
+    box-shadow: 0 0 60px rgba(200,255,0,0.08);
+  }
+  .modal-icon { font-size: 40px; margin-bottom: 12px; }
+  .modal h2 { font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 800; margin-bottom: 6px; }
+  .modal-sub { color: var(--muted); font-size: 14px; margin-bottom: 20px; }
+  .pro-features { text-align: left; margin-bottom: 22px; }
+  .pro-feature {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 0;
+    font-size: 14px;
+    border-bottom: 1px solid var(--border);
+  }
+  .pro-feature:last-child { border-bottom: none; }
+  .pro-feature .check { color: var(--accent); font-weight: 700; }
+  .modal-cta {
+    width: 100%;
+    background: var(--accent);
+    color: #06060f;
+    border: none;
+    border-radius: 10px;
+    padding: 13px;
+    font-size: 14px;
+    font-weight: 600;
+    font-family: 'DM Sans', sans-serif;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .modal-cta:hover { box-shadow: 0 0 24px var(--accent-glow); }
+  .modal-soon { font-size: 12px; color: var(--muted2); margin-top: 12px; }
+  .modal-close {
+    background: transparent;
+    border: none;
+    color: var(--muted);
+    font-size: 13px;
+    font-family: 'DM Sans', sans-serif;
+    cursor: pointer;
+    margin-top: 10px;
+  }
+  .modal-close:hover { color: var(--text); }
+  .modal-wide { max-width: 680px; max-height: 92vh; overflow-y: auto; }
+  .tier-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 18px; }
+  .tier-card {
+    background: var(--surface2);
+    border: 1px solid var(--border2);
+    border-radius: 14px;
+    padding: 22px 18px 20px;
+    text-align: left;
+    position: relative;
+  }
+  .tier-card.best { border-color: rgba(200,255,0,0.4); box-shadow: 0 0 30px rgba(200,255,0,0.06); }
+  .tier-flag {
+    position: absolute; top: -10px; right: 14px;
+    background: var(--accent); color: #06060f;
+    font-size: 10px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.05em; padding: 3px 10px; border-radius: 100px;
+  }
+  .tier-name { font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 700; }
+  .tier-price { font-family: 'Syne', sans-serif; font-size: 28px; font-weight: 800; color: var(--accent); margin: 4px 0 14px; }
+  .tier-price span { font-size: 13px; color: var(--muted); font-weight: 400; }
+  .tier-feats { list-style: none; margin-bottom: 16px; }
+  .tier-feats li { font-size: 13px; padding: 5px 0 5px 22px; position: relative; color: var(--text); line-height: 1.4; }
+  .tier-feats li::before { content: '✓'; position: absolute; left: 0; color: var(--accent); font-weight: 700; }
+  .tier-btn {
+    width: 100%; padding: 10px;
+    border-radius: 9px; font-size: 13px; font-weight: 600;
+    font-family: 'DM Sans', sans-serif; cursor: pointer;
+    background: transparent; color: var(--accent);
+    border: 1px solid rgba(200,255,0,0.4);
+    transition: all 0.2s;
+  }
+  .tier-btn:hover { background: var(--accent-dim); }
+  .tier-btn.primary { background: var(--accent); color: #06060f; border-color: var(--accent); }
+  .tier-btn.primary:hover { box-shadow: 0 0 20px var(--accent-glow); }
+  @media (max-width: 560px) { .tier-grid { grid-template-columns: 1fr; } }
+
+  /* TOAST */
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--surface2);
+    border: 1px solid var(--border2);
+    color: var(--text);
+    font-size: 13px;
+    padding: 10px 20px;
+    border-radius: 100px;
+    opacity: 0;
+    transition: all 0.25s;
+    z-index: 1100;
+    pointer-events: none;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  /* PRO / PREMIUM — completely ad-free, no empty ad spaces */
+  body.pro .ad-inline,
+  body.pro .ad-sidebar,
+  body.pro #ad-after-results { display: none !important; }
+  body.pro .layout { grid-template-columns: 260px 1fr; }
+  body.pro main { margin: 0 auto; max-width: 1160px; width: 100%; }
+
+  /* RESPONSIVE */
+  @media (max-width: 900px) {
+    .layout, body.pro .layout { grid-template-columns: 1fr; grid-template-rows: 60px auto 1fr; }
+    .sidebar, .ad-sidebar { display: none; }
+    main { padding: 20px 16px; max-width: 100%; }
+    .mobile-nav {
+      display: flex;
+      gap: 6px;
+      padding: 10px 12px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      overflow-x: auto;
+    }
+    .mnav-item {
+      flex: 1;
+      min-width: max-content;
+      background: transparent;
+      border: 1px solid var(--border2);
+      border-radius: 100px;
+      color: var(--muted);
+      font-size: 12px;
+      font-family: 'DM Sans', sans-serif;
+      padding: 7px 14px;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .mnav-item.active { background: var(--accent-dim); border-color: rgba(200,255,0,0.3); color: var(--accent); }
+    .history-grid { grid-template-columns: 1fr; }
+    .kbd-hint { display: none; }
+    .nav-back { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="layout">
+  <!-- NAV -->
+  <nav>
+    <a href="index.html" class="nav-logo">
+      <div class="logo-mark">📚</div>
+      <span class="logo-name">Snapwise</span>
+    </a>
+    <div class="nav-right">
+      <div class="usage-badge" id="usage-badge"><strong>2</strong> free left today</div>
+      <button class="btn-upgrade" id="nav-upgrade" onclick="showUpgradeModal()">✦ Upgrade</button>
+      <a href="index.html" class="nav-back">← Home</a>
+    </div>
+  </nav>
+
+  <!-- MOBILE NAV -->
+  <div class="mobile-nav">
+    <button class="mnav-item active" data-nav="generate" onclick="showSection('generate')">⚡ Generate</button>
+    <button class="mnav-item" data-nav="flashcards" onclick="showSection('history','flashcards')">🃏 Flashcards</button>
+    <button class="mnav-item" data-nav="quizzes" onclick="showSection('history','quiz')">✅ Quizzes</button>
+    <button class="mnav-item" data-nav="settings" onclick="showSection('settings')">⚙️ Settings</button>
+  </div>
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-label">Generate</div>
+    <button class="sidebar-item active" data-nav="generate" onclick="showSection('generate')">
+      <span class="icon">⚡</span> New study set
+    </button>
+
+    <div class="sidebar-label">Library</div>
+    <button class="sidebar-item" data-nav="flashcards" onclick="showSection('history','flashcards')">
+      <span class="icon">🃏</span> My flashcards
+    </button>
+    <button class="sidebar-item" data-nav="quizzes" onclick="showSection('history','quiz')">
+      <span class="icon">✅</span> Past quizzes
+    </button>
+
+    <div class="sidebar-label">Account</div>
+    <button class="sidebar-item" data-nav="settings" onclick="showSection('settings')">
+      <span class="icon">⚙️</span> Settings
+    </button>
+
+    <div class="sidebar-spacer"></div>
+    <div class="sidebar-pro" id="sidebar-pro">
+      <h4>✦ Snapwise Pro</h4>
+      <p>Unlimited generations, no ads, faster results.</p>
+      <button onclick="showUpgradeModal()">Upgrade</button>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main id="main-content">
+
+    <!-- ========== GENERATE SECTION ========== -->
+    <div id="section-generate">
+      <div id="input-section">
+        <div class="section-head">
+          <h1 class="page-title">Generate study materials</h1>
+          <p class="page-sub">Upload a photo of your notes or type a topic below</p>
+        </div>
+
+        <div class="upload-zone" id="upload-zone">
+          <input type="file" accept="image/*" id="file-input">
+          <div id="upload-content">
+            <div class="upload-icon">📸</div>
+            <div class="upload-text"><strong>Click to upload</strong> or drag your notes here</div>
+            <div class="upload-text" style="font-size:12px; margin-top:4px;">Photos, textbook pages, whiteboards, handwritten notes</div>
+          </div>
+        </div>
+
+        <div class="divider">or type a topic</div>
+
+        <textarea class="topic-input" id="topic-input" rows="2" placeholder="e.g. Mitosis and meiosis, The French Revolution, Newton's laws of motion..."></textarea>
+
+        <p class="mode-label">What do you want to generate?</p>
+        <div class="mode-row">
+          <button class="mode-btn active" data-mode="flashcards">
+            <span class="micon">🃏</span>
+            Flashcards
+          </button>
+          <button class="mode-btn" data-mode="quiz">
+            <span class="micon">✅</span>
+            Practice quiz
+          </button>
+          <button class="mode-btn mode-pro" data-mode="summary" data-pro="true">
+            <span class="pro-pill">✦ Pro</span>
+            <span class="micon">📋</span>
+            Key points
+          </button>
+        </div>
+
+        <button class="generate-btn" id="generate-btn">
+          ⚡ Generate study materials
+        </button>
+        <div id="error-area"></div>
+        <div id="limit-note" class="limit-note"></div>
+
+        <div class="ad-inline" id="ad-inline">
+          Advertisement — Google AdSense (728×90)
+        </div>
+        <div class="ad-inline" style="height:250px;">
+          Advertisement — Google AdSense (300×250)
+        </div>
+      </div>
+
+      <div id="loading" style="display:none;">
+        <div class="loading">
+          <div class="spinner"></div>
+          <p>Generating your <strong id="mode-label-loading">flashcards</strong>...</p>
+          <p style="margin-top:6px; font-size:12px;">This usually takes a few seconds</p>
+        </div>
+      </div>
+
+      <div id="results" style="display:none;"></div>
+
+      <div id="ad-after-results" style="display:none; margin-top:20px;">
+        <div class="ad-inline" style="height:90px;">
+          Advertisement — Google AdSense (728×90)
+        </div>
+      </div>
+    </div>
+
+    <!-- ========== HISTORY SECTION ========== -->
+    <div id="section-history" style="display:none;"></div>
+
+    <!-- ========== SETTINGS SECTION ========== -->
+    <div id="section-settings" style="display:none;"></div>
+
+  </main>
+
+  <!-- AD SIDEBAR -->
+  <aside class="ad-sidebar">
+    <div class="ad-sidebar-label">Sponsored</div>
+    <div class="ad-unit tall">AdSense<br>300×250</div>
+    <div class="ad-unit medium">AdSense<br>300×150</div>
+    <div class="ad-sidebar-label">Advertisement</div>
+    <div class="ad-unit tall">AdSense<br>300×250</div>
+  </aside>
+</div>
+
+<!-- UPGRADE MODAL -->
+<div class="modal-overlay" id="upgrade-modal">
+  <div class="modal modal-wide">
+    <div class="modal-icon">✦</div>
+    <h2>Upgrade Snapwise</h2>
+    <p class="modal-sub">You're on the Free plan — 2 study sets a day. Pick a plan to study without limits:</p>
+    <div class="tier-grid">
+      <div class="tier-card">
+        <div class="tier-name">Pro</div>
+        <div class="tier-price">$4.99<span>/mo</span></div>
+        <ul class="tier-feats">
+          <li>Unlimited study sets</li>
+          <li>Key points summaries</li>
+          <li>No ads, ever</li>
+          <li>Priority generation speed</li>
+          <li>Unlimited saved library</li>
+          <li>Copy &amp; export any set</li>
+        </ul>
+        <button class="tier-btn" onclick="choosePlan('Pro')">Choose Pro</button>
+      </div>
+      <div class="tier-card best">
+        <div class="tier-flag">Best value</div>
+        <div class="tier-name">Premium</div>
+        <div class="tier-price">$9.99<span>/mo</span></div>
+        <ul class="tier-feats">
+          <li>Everything in Pro</li>
+          <li>Export to PDF &amp; Anki</li>
+          <li>Bigger sets — up to 20 cards</li>
+          <li>AI explanations on quiz answers</li>
+          <li>Cloud sync across devices</li>
+          <li>Early access to new features</li>
+        </ul>
+        <button class="tier-btn primary" onclick="choosePlan('Premium')">Choose Premium</button>
+      </div>
+    </div>
+    <p class="modal-soon">Paid plans are launching soon — for now, enjoy 2 free study sets a day.</p>
+    <button class="modal-close" onclick="closeModal()">Close</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  /* ===================== STATE ===================== */
+  const FREE_LIMIT = 2;
+  let selectedMode = 'flashcards';
+  let imageBase64 = null;
+  let imageType = null;
+  let currentCard = 0;
+  let showingAnswer = false;
+  let quizAnswered = [];
+  let score = 0;
+  let fcCards = [];
+  let currentView = null;     // 'flashcards' | 'quiz' | 'summary' | null
+  let historyFilter = 'all';
+
+  const fileInput = document.getElementById('file-input');
+  const topicInput = document.getElementById('topic-input');
+  const generateBtn = document.getElementById('generate-btn');
+  const resultsDiv = document.getElementById('results');
+  const loadingDiv = document.getElementById('loading');
+  const inputSection = document.getElementById('input-section');
+  const errorArea = document.getElementById('error-area');
+
+  /* ===================== HELPERS ===================== */
+  function escapeHtml(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, c => (
+      { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]
+    ));
+  }
+  function todayStr() { return new Date().toISOString().slice(0, 10); }
+  function lsGet(key) { try { return JSON.parse(localStorage.getItem(key)); } catch (e) { return null; } }
+  function lsSet(key, val) { try { localStorage.setItem(key, JSON.stringify(val)); } catch (e) {} }
+
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(t._timer);
+    t._timer = setTimeout(() => t.classList.remove('show'), 1800);
+  }
+
+  /* ===================== USAGE / LIMIT ===================== */
+  function isPro() { return localStorage.getItem('snapwise_pro') === 'true'; }
+  function getUsage() {
+    let u = lsGet('snapwise_usage');
+    if (!u || u.date !== todayStr()) u = { date: todayStr(), count: 0 };
+    return u;
+  }
+  function saveUsage(u) { lsSet('snapwise_usage', u); }
+  function generationsLeft() {
+    if (isPro()) return Infinity;
+    return Math.max(0, FREE_LIMIT - getUsage().count);
+  }
+  function updateUsageBadge() {
+    document.body.classList.toggle('pro', isPro());
+    const badge = document.getElementById('usage-badge');
+    const upBtn = document.getElementById('nav-upgrade');
+    const sidePro = document.getElementById('sidebar-pro');
+    if (isPro()) {
+      badge.innerHTML = '<strong>✦ Pro</strong> — unlimited';
+      if (upBtn) upBtn.style.display = 'none';
+      if (sidePro) sidePro.style.display = 'none';
+      return;
+    }
+    const left = generationsLeft();
+    badge.innerHTML = '<strong>' + left + '</strong> free ' + (left === 1 ? 'set' : 'sets') + ' left today';
+  }
+  function updateLimitNote() {
+    const note = document.getElementById('limit-note');
+    if (!note) return;
+    if (isPro() || generationsLeft() > 0) { note.innerHTML = ''; return; }
+    note.innerHTML = '<div class="ln-box">You\'ve used your ' + FREE_LIMIT +
+      ' free study sets for today. They reset tomorrow — or ' +
+      '<a onclick="showUpgradeModal()">upgrade to Pro</a> for unlimited.</div>';
+  }
+
+  /* ===================== HISTORY ===================== */
+  function getHistory() { return lsGet('snapwise_history') || []; }
+  function saveToHistory(item) {
+    const h = getHistory();
+    h.unshift(item);
+    if (h.length > 60) h.length = 60;
+    lsSet('snapwise_history', h);
+  }
+  function deleteHistoryItem(id) {
+    if (!confirm('Delete this study set? This cannot be undone.')) return;
+    lsSet('snapwise_history', getHistory().filter(x => x.id !== id));
+    renderHistory(historyFilter);
+    showToast('Study set deleted');
+  }
+  function clearAllHistory() {
+    if (!confirm('Clear your entire study library? This cannot be undone.')) return;
+    localStorage.removeItem('snapwise_history');
+    renderSettings();
+    showToast('Library cleared');
+  }
+
+  /* ===================== NAVIGATION ===================== */
+  function setActiveNav(nav) {
+    document.querySelectorAll('[data-nav]').forEach(el => {
+      el.classList.toggle('active', el.dataset.nav === nav);
+    });
+  }
+  function showSection(section, filter) {
+    closeModal();
+    ['generate', 'history', 'settings'].forEach(s => {
+      const el = document.getElementById('section-' + s);
+      if (el) el.style.display = (s === section) ? 'block' : 'none';
+    });
+    if (section === 'generate') {
+      setActiveNav('generate');
+      resetToInput();
+    } else if (section === 'history') {
+      historyFilter = filter || 'all';
+      setActiveNav(historyFilter === 'quiz' ? 'quizzes' : 'flashcards');
+      renderHistory(historyFilter);
+    } else if (section === 'settings') {
+      setActiveNav('settings');
+      renderSettings();
+    }
+    window.scrollTo(0, 0);
+  }
+
+  /* ===================== MODAL ===================== */
+  function showUpgradeModal() { document.getElementById('upgrade-modal').classList.add('show'); }
+  function closeModal() { document.getElementById('upgrade-modal').classList.remove('show'); }
+  function choosePlan(name) {
+    closeModal();
+    showToast(name + ' is launching soon — thanks for your interest!');
+  }
+  document.getElementById('upgrade-modal').addEventListener('click', (e) => {
+    if (e.target.id === 'upgrade-modal') closeModal();
+  });
+
+  /* ===================== INPUT HANDLERS ===================== */
+  document.querySelectorAll('.mode-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (btn.dataset.pro === 'true' && !isPro()) {
+        showUpgradeModal();
+        return;
+      }
+      document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      selectedMode = btn.dataset.mode;
+    });
+  });
+
+  fileInput.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    imageType = file.type;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      imageBase64 = ev.target.result.split(',')[1];
+      document.getElementById('upload-content').innerHTML =
+        '<img src="' + ev.target.result + '" class="preview-img" alt="Uploaded notes">' +
+        '<div class="upload-text" style="margin-top:10px; font-size:12px;">✓ Image ready — click to change</div>';
+      document.getElementById('upload-zone').classList.add('has-image');
+    };
+    reader.readAsDataURL(file);
+  });
+
+  generateBtn.addEventListener('click', generate);
+
+  /* ===================== GENERATE ===================== */
+  async function generate() {
+    const topic = topicInput.value.trim();
+    errorArea.innerHTML = '';
+
+    if (!imageBase64 && !topic) {
+      errorArea.innerHTML = '<div class="error">Please upload an image or type a topic first.</div>';
+      return;
+    }
+    if (selectedMode === 'summary' && !isPro()) {
+      showUpgradeModal();
+      return;
+    }
+    if (generationsLeft() <= 0) {
+      showUpgradeModal();
+      return;
+    }
+
+    generateBtn.disabled = true;
+    inputSection.style.display = 'none';
+    loadingDiv.style.display = 'block';
+    resultsDiv.style.display = 'none';
+    document.getElementById('ad-after-results').style.display = 'none';
+    document.getElementById('mode-label-loading').textContent =
+      selectedMode === 'flashcards' ? 'flashcards' : selectedMode === 'quiz' ? 'quiz' : 'key points';
+
+    try {
+      const res = await fetch('/api/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          mode: selectedMode,
+          topic: topic || null,
+          imageBase64: imageBase64 || null,
+          imageType: imageType || null,
+          isPro: isPro()
+        })
+      });
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || 'Request failed');
+      }
+
+      const parsed = await res.json();
+
+      // count this generation against the daily free limit
+      if (!isPro()) {
+        const u = getUsage();
+        u.count++;
+        saveUsage(u);
+      }
+      updateUsageBadge();
+      updateLimitNote();
+
+      // save to the user's library
+      saveToHistory({
+        id: Date.now(),
+        type: selectedMode,
+        topic: topic || 'From uploaded image',
+        data: parsed,
+        createdAt: new Date().toISOString()
+      });
+
+      displayResult(selectedMode, parsed);
+
+    } catch (err) {
+      loadingDiv.style.display = 'none';
+      inputSection.style.display = 'block';
+      generateBtn.disabled = false;
+      errorArea.innerHTML = '<div class="error">Something went wrong generating your materials. Please try again.</div>';
+    }
+  }
+
+  function displayResult(type, parsed) {
+    currentView = type;
+    inputSection.style.display = 'none';
+    loadingDiv.style.display = 'none';
+    resultsDiv.style.display = 'block';
+    document.getElementById('ad-after-results').style.display = 'block';
+    generateBtn.disabled = false;
+    if (type === 'flashcards') renderFlashcards((parsed && parsed.cards) || []);
+    else if (type === 'quiz') renderQuiz((parsed && parsed.questions) || []);
+    else renderSummary((parsed && parsed.points) || []);
+  }
+
+  function openHistoryItem(id) {
+    const item = getHistory().find(x => x.id === id);
+    if (!item) return;
+    ['generate', 'history', 'settings'].forEach(s => {
+      const el = document.getElementById('section-' + s);
+      if (el) el.style.display = (s === 'generate') ? 'block' : 'none';
+    });
+    setActiveNav('generate');
+    displayResult(item.type, item.data);
+    window.scrollTo(0, 0);
+  }
+
+  function resetToInput() {
+    resultsDiv.style.display = 'none';
+    resultsDiv.innerHTML = '';
+    document.getElementById('ad-after-results').style.display = 'none';
+    loadingDiv.style.display = 'none';
+    inputSection.style.display = 'block';
+    generateBtn.disabled = false;
+    errorArea.innerHTML = '';
+    currentView = null;
+    updateLimitNote();
+  }
+
+  /* ===================== FLASHCARDS ===================== */
+  function renderFlashcards(cards) {
+    fcCards = (cards || []).slice();
+    currentCard = 0;
+    showingAnswer = false;
+    if (!fcCards.length) {
+      resultsDiv.innerHTML = '<div class="error">No flashcards were generated. Please try again.</div>' +
+        '<button class="back-btn" id="back-btn">← Generate new set</button>';
+      document.getElementById('back-btn').addEventListener('click', resetToInput);
+      return;
+    }
+    renderFcView();
+  }
+
+  function renderFcView() {
+    const cards = fcCards;
+    const card = cards[currentCard];
+    const pct = Math.round(((currentCard + 1) / cards.length) * 100);
+    resultsDiv.innerHTML =
+      '<div class="results-header">' +
+        '<span class="results-title">Flashcards</span>' +
+        '<div class="toolbar">' +
+          '<button class="tool-btn" id="shuffle-btn">🔀 Shuffle</button>' +
+          '<button class="tool-btn" id="copy-btn">⧉ Copy all</button>' +
+        '</div>' +
+      '</div>' +
+      '<div class="progress-bar"><div class="progress-fill" style="width:' + pct + '%"></div></div>' +
+      '<div class="fc-nav">' +
+        '<button class="nav-btn" id="prev-btn" ' + (currentCard === 0 ? 'disabled' : '') + '>←</button>' +
+        '<span class="card-counter">' + (currentCard + 1) + ' / ' + cards.length + '</span>' +
+        '<button class="nav-btn" id="next-btn" ' + (currentCard === cards.length - 1 ? 'disabled' : '') + '>→</button>' +
+      '</div>' +
+      '<div class="flashcard" id="fc">' +
+        '<span class="card-side ' + (showingAnswer ? 'answer' : '') + '">' + (showingAnswer ? 'Answer' : 'Question') + '</span>' +
+        '<div class="' + (showingAnswer ? 'card-a' : 'card-q') + '">' + escapeHtml(showingAnswer ? card.back : card.front) + '</div>' +
+        (!showingAnswer ? '<div class="card-tap">Tap to reveal answer</div>' : '') +
+      '</div>' +
+      (showingAnswer ?
+        '<div class="flip-row">' +
+          '<button class="flip-btn again" id="again">Study again</button>' +
+          '<button class="flip-btn gotit" id="gotit">✓ Got it!</button>' +
+        '</div>' : '') +
+      '<p class="kbd-hint">Tip: use ← → arrow keys to move, space to flip</p>' +
+      '<button class="back-btn" id="back-btn">← Generate new set</button>';
+
+    document.getElementById('fc').addEventListener('click', () => { showingAnswer = !showingAnswer; renderFcView(); });
+    const prev = document.getElementById('prev-btn');
+    const next = document.getElementById('next-btn');
+    if (prev) prev.addEventListener('click', () => { if (currentCard > 0) { currentCard--; showingAnswer = false; renderFcView(); } });
+    if (next) next.addEventListener('click', () => { if (currentCard < cards.length - 1) { currentCard++; showingAnswer = false; renderFcView(); } });
+    const again = document.getElementById('again');
+    const gotit = document.getElementById('gotit');
+    if (again) again.addEventListener('click', () => { showingAnswer = false; renderFcView(); });
+    if (gotit) gotit.addEventListener('click', () => {
+      if (currentCard < cards.length - 1) { currentCard++; showingAnswer = false; renderFcView(); }
+      else showToast('You reached the last card 🎉');
+    });
+    document.getElementById('shuffle-btn').addEventListener('click', () => {
+      for (let i = fcCards.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [fcCards[i], fcCards[j]] = [fcCards[j], fcCards[i]];
+      }
+      currentCard = 0; showingAnswer = false; renderFcView();
+      showToast('Cards shuffled');
+    });
+    document.getElementById('copy-btn').addEventListener('click', () => {
+      const text = fcCards.map((c, i) => (i + 1) + '. ' + c.front + '\n   → ' + c.back).join('\n\n');
+      copyToClipboard(text);
+    });
+    document.getElementById('back-btn').addEventListener('click', resetToInput);
+  }
+
+  // keyboard navigation for flashcards
+  document.addEventListener('keydown', (e) => {
+    if (currentView !== 'flashcards' || resultsDiv.style.display === 'none' || !fcCards.length) return;
+    const tag = (e.target.tagName || '').toLowerCase();
+    if (tag === 'input' || tag === 'textarea') return;
+    if (e.key === 'ArrowLeft') {
+      if (currentCard > 0) { currentCard--; showingAnswer = false; renderFcView(); }
+    } else if (e.key === 'ArrowRight') {
+      if (currentCard < fcCards.length - 1) { currentCard++; showingAnswer = false; renderFcView(); }
+    } else if (e.key === ' ' || e.key === 'Enter') {
+      e.preventDefault();
+      showingAnswer = !showingAnswer;
+      renderFcView();
+    }
+  });
+
+  /* ===================== QUIZ ===================== */
+  function renderQuiz(questions, title) {
+    title = title || 'Practice quiz';
+    currentView = 'quiz';
+    questions = questions || [];
+    if (!questions.length) {
+      resultsDiv.innerHTML = '<div class="error">No quiz questions were generated. Please try again.</div>' +
+        '<button class="back-btn" id="back-btn">← Generate new set</button>';
+      document.getElementById('back-btn').addEventListener('click', resetToInput);
+      return;
+    }
+    quizAnswered = new Array(questions.length).fill(null);
+    score = 0;
+    let current = 0;
+
+    const render = () => {
+      if (current >= questions.length) {
+        const pct = Math.round((score / questions.length) * 100);
+        const msg = pct >= 80 ? 'Excellent work! 🎉' : pct >= 60 ? 'Good effort — keep studying.' : 'Keep practicing, you\'ll get there!';
+        const wrong = questions.filter((q, i) => quizAnswered[i] !== q.correct);
+        resultsDiv.innerHTML =
+          '<div class="score-wrap">' +
+            '<div class="score-circle">' +
+              '<div class="score-pct">' + pct + '%</div>' +
+              '<div class="score-sub">' + score + '/' + questions.length + '</div>' +
+            '</div>' +
+            '<h3>' + msg + '</h3>' +
+            '<p>' + score + ' out of ' + questions.length + ' questions correct</p>' +
+            '<div class="score-actions">' +
+              (wrong.length ?
+                '<button class="retry-btn" id="test-wrong">📌 Test the ' + wrong.length + ' I missed</button>' : '') +
+              '<button class="retry-btn alt" id="retry">Retake full quiz</button>' +
+            '</div>' +
+          '</div>' +
+          '<button class="back-btn" id="back-btn">← Generate new set</button>';
+        const tw = document.getElementById('test-wrong');
+        if (tw) tw.addEventListener('click', () => renderQuiz(wrong, 'Retest — missed questions'));
+        document.getElementById('retry').addEventListener('click', () => renderQuiz(questions, title));
+        document.getElementById('back-btn').addEventListener('click', resetToInput);
+        return;
+      }
+
+      const q = questions[current];
+      const pct = Math.round((current / questions.length) * 100);
+      const answered = quizAnswered[current];
+      resultsDiv.innerHTML =
+        '<div class="results-header">' +
+          '<span class="results-title">' + escapeHtml(title) + '</span>' +
+          '<span class="results-meta">Question ' + (current + 1) + ' of ' + questions.length + '</span>' +
+        '</div>' +
+        '<div class="progress-bar"><div class="progress-fill" style="width:' + pct + '%"></div></div>' +
+        '<div class="q-num">Question ' + (current + 1) + '</div>' +
+        '<div class="q-text">' + escapeHtml(q.question) + '</div>' +
+        (q.options || []).map((opt, i) => {
+          let cls = '';
+          if (answered !== null) {
+            if (i === q.correct) cls = ' correct';
+            else if (i === answered) cls = ' wrong';
+          }
+          return '<button class="option' + cls + '" data-idx="' + i + '" ' +
+            (answered !== null ? 'disabled' : '') + '>' + escapeHtml(opt) + '</button>';
+        }).join('') +
+        '<button class="back-btn" id="back-btn">← Generate new set</button>';
+
+      document.querySelectorAll('.option').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const idx = parseInt(btn.dataset.idx);
+          quizAnswered[current] = idx;
+          if (idx === q.correct) score++;
+          render();
+          setTimeout(() => { current++; render(); }, 1100);
+        });
+      });
+      document.getElementById('back-btn').addEventListener('click', resetToInput);
+    };
+    render();
+  }
+
+  /* ===================== KEY POINTS ===================== */
+  function renderSummary(points) {
+    currentView = 'summary';
+    points = points || [];
+    if (!points.length) {
+      resultsDiv.innerHTML = '<div class="error">No key points were generated. Please try again.</div>' +
+        '<button class="back-btn" id="back-btn">← Generate new set</button>';
+      document.getElementById('back-btn').addEventListener('click', resetToInput);
+      return;
+    }
+    resultsDiv.innerHTML =
+      '<div class="results-header">' +
+        '<span class="results-title">Key points</span>' +
+        '<div class="toolbar"><button class="tool-btn" id="copy-btn">⧉ Copy all</button></div>' +
+      '</div>' +
+      points.map((pt, i) =>
+        '<div class="point-item">' +
+          '<div class="point-num">' + (i + 1) + '</div>' +
+          '<div class="point-text">' + escapeHtml(pt) + '</div>' +
+        '</div>'
+      ).join('') +
+      '<button class="back-btn" id="back-btn">← Generate new set</button>';
+    document.getElementById('copy-btn').addEventListener('click', () => {
+      copyToClipboard(points.map((p, i) => (i + 1) + '. ' + p).join('\n'));
+    });
+    document.getElementById('back-btn').addEventListener('click', resetToInput);
+  }
+
+  function copyToClipboard(text) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(
+        () => showToast('Copied to clipboard'),
+        () => showToast('Could not copy')
+      );
+    } else {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      document.body.appendChild(ta);
+      ta.select();
+      try { document.execCommand('copy'); showToast('Copied to clipboard'); }
+      catch (e) { showToast('Could not copy'); }
+      document.body.removeChild(ta);
+    }
+  }
+
+  /* ===================== HISTORY VIEW ===================== */
+  function renderHistory(filter) {
+    filter = filter || 'all';
+    historyFilter = filter;
+    const all = getHistory();
+    const list = filter === 'all' ? all : all.filter(x => x.type === filter);
+
+    const tab = (id, label) =>
+      '<button class="hist-tab' + (filter === id ? ' active' : '') + '" ' +
+      'onclick="showSection(\'history\',\'' + id + '\')">' + label + '</button>';
+
+    const tabs = '<div class="hist-tabs">' +
+      tab('all', 'All') + tab('flashcards', 'Flashcards') +
+      tab('quiz', 'Quizzes') + tab('summary', 'Key points') + '</div>';
+
+    let body;
+    if (!list.length) {
+      body = '<div class="empty-state">' +
+        '<div class="empty-icon">📭</div>' +
+        '<p>No saved study sets here yet.</p>' +
+        '<button class="retry-btn" onclick="showSection(\'generate\')">Create a study set</button>' +
+        '</div>';
+    } else {
+      body = '<div class="history-grid">' + list.map(it => {
+        const icon = it.type === 'flashcards' ? '🃏' : it.type === 'quiz' ? '✅' : '📋';
+        const label = it.type === 'flashcards' ? 'Flashcards' : it.type === 'quiz' ? 'Quiz' : 'Key points';
+        const d = it.data || {};
+        const count = it.type === 'flashcards' ? ((d.cards || []).length + ' cards')
+          : it.type === 'quiz' ? ((d.questions || []).length + ' questions')
+          : ((d.points || []).length + ' points');
+        let dateStr = '';
+        try { dateStr = new Date(it.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }); } catch (e) {}
+        return '<div class="history-card">' +
+          '<div class="hc-top">' +
+            '<span class="hc-icon">' + icon + '</span>' +
+            '<span class="hc-type">' + label + '</span>' +
+            '<span class="hc-date">' + dateStr + '</span>' +
+          '</div>' +
+          '<div class="hc-topic">' + escapeHtml(it.topic) + '</div>' +
+          '<div class="hc-meta">' + count + '</div>' +
+          '<div class="hc-actions">' +
+            '<button class="hc-open" onclick="openHistoryItem(' + it.id + ')">Open</button>' +
+            '<button class="hc-del" onclick="deleteHistoryItem(' + it.id + ')">Delete</button>' +
+          '</div>' +
+        '</div>';
+      }).join('') + '</div>';
+    }
+
+    document.getElementById('section-history').innerHTML =
+      '<div class="section-head">' +
+        '<h1 class="page-title">Your study library</h1>' +
+        '<p class="page-sub">Every set you generate is saved here automatically.</p>' +
+      '</div>' + tabs + body;
+  }
+
+  /* ===================== SETTINGS VIEW ===================== */
+  function renderSettings() {
+    const u = getUsage();
+    const h = getHistory();
+    const pro = isPro();
+    document.getElementById('section-settings').innerHTML =
+      '<div class="section-head">' +
+        '<h1 class="page-title">Settings</h1>' +
+        '<p class="page-sub">Manage your plan and saved study data.</p>' +
+      '</div>' +
+      '<div class="settings-card">' +
+        '<div class="sc-row">' +
+          '<div><div class="sc-title">Current plan</div>' +
+          '<div class="sc-sub">' + (pro ? 'Snapwise Pro — unlimited generations' : 'Free — ' + FREE_LIMIT + ' study sets per day') + '</div></div>' +
+          (pro ? '<span class="pro-badge">✦ Pro</span>'
+               : '<button class="btn-upgrade" onclick="showUpgradeModal()">✦ Upgrade</button>') +
+        '</div>' +
+        '<div class="sc-row">' +
+          '<div><div class="sc-title">Today\'s usage</div>' +
+          '<div class="sc-sub">' + (pro ? 'Unlimited' : u.count + ' of ' + FREE_LIMIT + ' free study sets used') + '</div></div>' +
+        '</div>' +
+      '</div>' +
+      '<div class="settings-card">' +
+        '<div class="sc-row">' +
+          '<div><div class="sc-title">Saved study sets</div>' +
+          '<div class="sc-sub">' + h.length + ' set' + (h.length === 1 ? '' : 's') + ' stored on this device</div></div>' +
+          '<button class="btn-danger" onclick="clearAllHistory()">Clear all</button>' +
+        '</div>' +
+      '</div>' +
+      '<div class="settings-card about">' +
+        '<div class="sc-title">Snapwise</div>' +
+        '<div class="sc-sub">Version 1.0 · AI-powered study tools. Your study sets are saved privately in this browser.</div>' +
+      '</div>';
+  }
+
+  /* ===================== INIT ===================== */
+  updateUsageBadge();
+  updateLimitNote();
+</script>
+</body>
+</html>
