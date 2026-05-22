@@ -3,14 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5942500580735009"
-     crossorigin="anonymous"></script>
-<title>StudySnap — Free AI Study Materials in Seconds</title>
+<title>Snapwise — Free AI Study Materials in Seconds</title>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <!-- Google AdSense — replace ca-pub-XXXXXXXXXXXXXXXX with your Publisher ID after approval -->
 <!-- <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX" crossorigin="anonymous"></script> -->
 <style>
-  :root { 
+  :root {
     --bg: #06060f;
     --surface: #0c0c1e;
     --surface2: #12122a;
@@ -90,6 +88,7 @@
   .feature-icon { font-size: 24px; flex-shrink: 0; margin-top: 2px; }
   .feature-pill h4 { font-family: 'Syne', sans-serif; font-size: 15px; font-weight: 600; margin-bottom: 4px; }
   .feature-pill p { font-size: 13px; color: var(--muted); line-height: 1.5; }
+  .pro-tag { background: var(--accent); color: #06060f; font-size: 9px; font-weight: 700; padding: 2px 7px; border-radius: 100px; vertical-align: middle; margin-left: 4px; letter-spacing: 0.03em; }
 
   .free-section { padding: 80px 5%; max-width: 800px; margin: 0 auto; text-align: center; }
   .free-card { background: var(--surface); border: 1px solid rgba(200,255,0,0.2); border-radius: 20px; padding: 48px 40px; position: relative; overflow: hidden; }
@@ -101,6 +100,26 @@
   .free-perk::before { content: '✓'; color: var(--accent); font-weight: 700; font-size: 16px; }
   .ad-explain { background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 12px; padding: 16px 20px; font-size: 13px; color: var(--muted); margin-top: 24px; line-height: 1.7; text-align: left; }
   .ad-explain strong { color: var(--text); }
+
+  .pricing-section { padding: 100px 5%; max-width: 1100px; margin: 0 auto; }
+  .pricing-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+  .price-card { background: var(--surface); border: 1px solid var(--border); border-radius: 18px; padding: 32px 26px; position: relative; display: flex; flex-direction: column; }
+  .price-card.featured { border-color: rgba(200,255,0,0.4); box-shadow: 0 0 50px rgba(200,255,0,0.07); }
+  .pc-flag { position: absolute; top: -12px; left: 50%; transform: translateX(-50%); background: var(--accent); color: #06060f; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; padding: 4px 14px; border-radius: 100px; white-space: nowrap; }
+  .pc-name { font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 700; margin-bottom: 10px; }
+  .pc-price { font-family: 'Syne', sans-serif; font-size: 42px; font-weight: 800; color: var(--accent); line-height: 1; }
+  .pc-price span { font-size: 15px; color: var(--muted); font-weight: 400; }
+  .pc-period { font-size: 13px; color: var(--muted); margin: 6px 0 22px; }
+  .pc-feats { list-style: none; margin-bottom: 24px; flex: 1; }
+  .pc-feats li { font-size: 14px; padding: 7px 0 7px 24px; position: relative; color: var(--text); line-height: 1.5; }
+  .pc-feats li::before { content: '✓'; position: absolute; left: 0; color: var(--accent); font-weight: 700; }
+  .pc-btn { display: block; text-align: center; padding: 12px; border-radius: 10px; font-weight: 600; font-size: 14px; text-decoration: none; background: transparent; color: var(--accent); border: 1px solid rgba(200,255,0,0.4); transition: all 0.2s; }
+  .pc-btn:hover { background: var(--accent-dim); }
+  .pc-btn.primary { background: var(--accent); color: #06060f; border-color: var(--accent); box-shadow: 0 0 30px var(--accent-glow); }
+  .pc-btn.primary:hover { box-shadow: 0 0 50px rgba(200,255,0,0.4); transform: translateY(-1px); }
+  .pc-note { text-align: center; font-size: 12px; color: var(--muted2); margin-top: 10px; }
+  .pricing-foot { text-align: center; font-size: 13px; color: var(--muted); margin: 40px auto 0; max-width: 560px; line-height: 1.7; }
+  @media (max-width: 860px) { .pricing-grid { grid-template-columns: 1fr; max-width: 380px; margin: 0 auto; } }
 
   .cta-section { padding: 100px 5%; text-align: center; max-width: 700px; margin: 0 auto; }
   .cta-section h2 { margin-bottom: 16px; }
@@ -128,25 +147,25 @@
 <nav>
   <a href="#" class="nav-logo">
     <div class="logo-mark">📚</div>
-    <span class="logo-name">StudySnap</span>
+    <span class="logo-name">Snapwise</span>
   </a>
   <ul class="nav-links">
     <li><a href="#how">How it works</a></li>
     <li><a href="#features">Features</a></li>
-    <li><a href="#free">Always free</a></li>
+    <li><a href="#pricing">Pricing</a></li>
   </ul>
   <a href="app.html" class="nav-cta">Start studying →</a>
 </nav>
 
 <section class="hero">
   <div class="orb orb-1"></div>
-  <div class="free-badge">✓ 100% free — no account needed</div>
+  <div class="free-badge">✓ Free to start — no account needed</div>
   <div class="hero-badge">
     <span></span>
     AI-powered studying — no more manual flashcards
   </div>
   <h1>Snap your notes.<br><em>Master any subject.</em></h1>
-  <p class="hero-sub">Upload a photo of your notes, textbook, or whiteboard. StudySnap turns it into flashcards, quizzes, and key points in seconds. Free, forever.</p>
+  <p class="hero-sub">Upload a photo of your notes, textbook, or whiteboard. Snapwise turns it into flashcards, quizzes, and key points in seconds. Free to start — no sign-up needed.</p>
   <div class="hero-btns">
     <a href="app.html" class="btn-primary">Start studying for free →</a>
     <a href="#how" class="btn-secondary">See how it works</a>
@@ -154,7 +173,7 @@
   <div class="hero-demo">
     <div class="demo-bar">
       <div class="dot r"></div><div class="dot y"></div><div class="dot g"></div>
-      <span class="demo-url">studysnap.app</span>
+      <span class="demo-url">snapwise.app</span>
     </div>
     <div class="demo-inner">
       <div class="demo-step">
@@ -180,7 +199,7 @@
 <div class="stats">
   <div class="stat"><div class="stat-num">10x</div><div class="stat-label">Faster than making flashcards manually</div></div>
   <div class="stat"><div class="stat-num">3</div><div class="stat-label">Study formats in one app</div></div>
-  <div class="stat"><div class="stat-num">$0</div><div class="stat-label">Forever — no credit card, no sign up</div></div>
+  <div class="stat"><div class="stat-num">$0</div><div class="stat-label">Free plan — no card to get started</div></div>
 </div>
 
 <section class="how" id="how">
@@ -212,7 +231,7 @@
   <div class="features-grid">
     <div class="feature-pill"><div class="feature-icon">🃏</div><div><h4>Flashcards</h4><p>Flip-card format with got it / study again tracking</p></div></div>
     <div class="feature-pill"><div class="feature-icon">✅</div><div><h4>Practice quizzes</h4><p>Multiple choice with instant right/wrong feedback</p></div></div>
-    <div class="feature-pill"><div class="feature-icon">📋</div><div><h4>Key points</h4><p>Bullet summary of the most important concepts</p></div></div>
+    <div class="feature-pill"><div class="feature-icon">📋</div><div><h4>Key points <span class="pro-tag">Pro</span></h4><p>Bullet summary of the most important concepts</p></div></div>
     <div class="feature-pill"><div class="feature-icon">📷</div><div><h4>Photo upload</h4><p>Works with handwriting, printed text, and diagrams</p></div></div>
     <div class="feature-pill"><div class="feature-icon">⌨️</div><div><h4>Topic mode</h4><p>No notes? Just type any subject and get materials instantly</p></div></div>
     <div class="feature-pill"><div class="feature-icon">📱</div><div><h4>Works everywhere</h4><p>Phone, tablet, laptop — no app download needed</p></div></div>
@@ -223,22 +242,63 @@
   <div class="ad-banner">Advertisement — Google AdSense (728×90)</div>
 </div>
 
-<section class="free-section" id="free">
-  <div class="free-card">
-    <div class="section-label">Always free</div>
-    <h2>Free forever.<br>No catch.</h2>
-    <p>StudySnap is completely free — no account, no credit card, no usage limits. We keep the lights on with ads, so you never pay a cent.</p>
-    <div class="free-perks">
-      <div class="free-perk">Unlimited generations</div>
-      <div class="free-perk">No sign-up required</div>
-      <div class="free-perk">All 3 study formats</div>
-      <div class="free-perk">Photo upload included</div>
+<section class="pricing-section" id="pricing">
+  <div class="section-label" style="text-align:center;">Pricing</div>
+  <h2 style="text-align:center;">Start free. Upgrade<br>when you're ready.</h2>
+  <p class="section-sub" style="margin:0 auto 56px; text-align:center;">Every plan includes AI flashcards and quizzes.</p>
+  <div class="pricing-grid">
+
+    <div class="price-card">
+      <div class="pc-name">Free</div>
+      <div class="pc-price">$0</div>
+      <div class="pc-period">forever</div>
+      <ul class="pc-feats">
+        <li>2 study sets per day</li>
+        <li>Flashcards &amp; quizzes</li>
+        <li>Photo &amp; topic input</li>
+        <li>Save your study library</li>
+        <li>No account needed</li>
+      </ul>
+      <a href="app.html" class="pc-btn">Start free →</a>
+      <p class="pc-note">Supported by ads</p>
     </div>
-    <a href="app.html" class="btn-primary">Start studying now →</a>
-    <div class="ad-explain">
-      <strong>How we stay free:</strong> StudySnap is supported by ads. We use Google AdSense, which shows relevant ads based on page content — not your personal data. The ads are what let us offer this tool at no cost to every student.
+
+    <div class="price-card featured">
+      <div class="pc-flag">Most popular</div>
+      <div class="pc-name">Pro</div>
+      <div class="pc-price">$4.99<span>/mo</span></div>
+      <div class="pc-period">billed monthly</div>
+      <ul class="pc-feats">
+        <li>Everything in Free</li>
+        <li>Unlimited study sets</li>
+        <li>Key points summaries</li>
+        <li>No ads, ever</li>
+        <li>Priority generation speed</li>
+        <li>Unlimited saved library</li>
+        <li>Copy &amp; export any set</li>
+      </ul>
+      <a href="app.html" class="pc-btn primary">Get Pro →</a>
+      <p class="pc-note">Launching soon</p>
     </div>
+
+    <div class="price-card">
+      <div class="pc-name">Premium</div>
+      <div class="pc-price">$9.99<span>/mo</span></div>
+      <div class="pc-period">billed monthly</div>
+      <ul class="pc-feats">
+        <li>Everything in Pro</li>
+        <li>Export to PDF &amp; Anki</li>
+        <li>Bigger sets — up to 20 cards</li>
+        <li>AI explanations on answers</li>
+        <li>Cloud sync across devices</li>
+        <li>Early access to new features</li>
+      </ul>
+      <a href="app.html" class="pc-btn">Get Premium →</a>
+      <p class="pc-note">Launching soon</p>
+    </div>
+
   </div>
+  <p class="pricing-foot">The Free plan is supported by non-intrusive ads (Google AdSense), shown based on page content — not your personal data.</p>
 </section>
 
 <div style="max-width:1100px; margin:0 auto; padding:0 5% 40px; position:relative; z-index:1; display:flex; gap:20px; justify-content:center; flex-wrap:wrap;">
@@ -251,15 +311,15 @@
   <div class="section-label">Get started</div>
   <h2>Stop wasting time making<br>flashcards manually.</h2>
   <p>It's free. Open it, snap your notes, start studying.</p>
-  <a href="app.html" class="btn-primary">Try StudySnap free →</a>
+  <a href="app.html" class="btn-primary">Try Snapwise free →</a>
 </section>
 
 <footer>
-  <p>© 2025 StudySnap. Free for students, always.</p>
+  <p>© 2026 Snapwise. Built for students.</p>
   <div class="footer-links">
     <a href="privacy.html">Privacy</a>
     <a href="terms.html">Terms</a>
-    <a href="mailto:hello@studysnap.app">Contact</a>
+    <a href="mailto:hello@snapwise.app">Contact</a>
   </div>
 </footer>
 
