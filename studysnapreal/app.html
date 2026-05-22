@@ -477,6 +477,18 @@
   .option.correct { border-color: var(--good); background: rgba(93,200,100,0.1); color: var(--good); }
   .option.wrong { border-color: var(--danger); background: rgba(255,87,87,0.1); color: var(--danger); }
   .option:disabled { cursor: default; }
+  .quiz-explain {
+    background: var(--surface2);
+    border: 1px solid var(--border2);
+    border-left: 3px solid var(--accent);
+    border-radius: 8px;
+    padding: 12px 14px;
+    font-size: 13px;
+    color: var(--text);
+    line-height: 1.55;
+    margin-top: 6px;
+  }
+  .quiz-explain strong { color: var(--accent); }
 
   .score-wrap { text-align: center; padding: 36px 20px; }
   .score-circle {
@@ -972,7 +984,6 @@
           <li>Export to PDF &amp; Anki</li>
           <li>Bigger sets — up to 20 cards</li>
           <li>AI explanations on quiz answers</li>
-          <li>Cloud sync across devices</li>
           <li>Early access to new features</li>
         </ul>
         <button class="tier-btn primary" onclick="choosePlan('Premium')">Choose Premium</button>
@@ -997,6 +1008,7 @@
   let score = 0;
   let fcCards = [];
   let currentView = null;     // 'flashcards' | 'quiz' | 'summary' | null
+  let currentData = null;     // the parsed study set currently shown
   let historyFilter = 'all';
 
   const fileInput = document.getElementById('file-input');
@@ -1026,7 +1038,12 @@
   }
 
   /* ===================== USAGE / LIMIT ===================== */
-  function isPro() { return localStorage.getItem('snapwise_pro') === 'true'; }
+  function getPlan() {
+    const p = localStorage.getItem('snapwise_plan');
+    return (p === 'pro' || p === 'premium') ? p : 'free';
+  }
+  function isPro() { return getPlan() !== 'free'; }
+  function isPremium() { return getPlan() === 'premium'; }
   function getUsage() {
     let u = lsGet('snapwise_usage');
     if (!u || u.date !== todayStr()) u = { date: todayStr(), count: 0 };
@@ -1043,7 +1060,7 @@
     const upBtn = document.getElementById('nav-upgrade');
     const sidePro = document.getElementById('sidebar-pro');
     if (isPro()) {
-      badge.innerHTML = '<strong>✦ Pro</strong> — unlimited';
+      badge.innerHTML = '<strong>' + (isPremium() ? '✦ Premium' : '✦ Pro') + '</strong> — unlimited';
       if (upBtn) upBtn.style.display = 'none';
       if (sidePro) sidePro.style.display = 'none';
       return;
@@ -1183,7 +1200,7 @@
           topic: topic || null,
           imageBase64: imageBase64 || null,
           imageType: imageType || null,
-          isPro: isPro()
+          plan: getPlan()
         })
       });
 
@@ -1224,6 +1241,7 @@
 
   function displayResult(type, parsed) {
     currentView = type;
+    currentData = parsed;
     inputSection.style.display = 'none';
     loadingDiv.style.display = 'none';
     resultsDiv.style.display = 'block';
@@ -1281,7 +1299,9 @@
         '<span class="results-title">Flashcards</span>' +
         '<div class="toolbar">' +
           '<button class="tool-btn" id="shuffle-btn">🔀 Shuffle</button>' +
-          '<button class="tool-btn" id="copy-btn">⧉ Copy all</button>' +
+          '<button class="tool-btn" id="copy-btn">⧉ Copy</button>' +
+          (isPremium() ? '<button class="tool-btn" id="pdf-btn">⬇ PDF</button>' +
+            '<button class="tool-btn" id="anki-btn">⬇ Anki</button>' : '') +
         '</div>' +
       '</div>' +
       '<div class="progress-bar"><div class="progress-fill" style="width:' + pct + '%"></div></div>' +
@@ -1327,6 +1347,10 @@
       const text = fcCards.map((c, i) => (i + 1) + '. ' + c.front + '\n   → ' + c.back).join('\n\n');
       copyToClipboard(text);
     });
+    const fcPdf = document.getElementById('pdf-btn');
+    if (fcPdf) fcPdf.addEventListener('click', exportPdf);
+    const fcAnki = document.getElementById('anki-btn');
+    if (fcAnki) fcAnki.addEventListener('click', exportAnki);
     document.getElementById('back-btn').addEventListener('click', resetToInput);
   }
 
@@ -1378,12 +1402,15 @@
               (wrong.length ?
                 '<button class="retry-btn" id="test-wrong">📌 Test the ' + wrong.length + ' I missed</button>' : '') +
               '<button class="retry-btn alt" id="retry">Retake full quiz</button>' +
+              (isPremium() ? '<button class="retry-btn alt" id="pdf-btn">⬇ Export as PDF</button>' : '') +
             '</div>' +
           '</div>' +
           '<button class="back-btn" id="back-btn">← Generate new set</button>';
         const tw = document.getElementById('test-wrong');
         if (tw) tw.addEventListener('click', () => renderQuiz(wrong, 'Retest — missed questions'));
         document.getElementById('retry').addEventListener('click', () => renderQuiz(questions, title));
+        const scorePdf = document.getElementById('pdf-btn');
+        if (scorePdf) scorePdf.addEventListener('click', exportPdf);
         document.getElementById('back-btn').addEventListener('click', resetToInput);
         return;
       }
@@ -1408,6 +1435,11 @@
           return '<button class="option' + cls + '" data-idx="' + i + '" ' +
             (answered !== null ? 'disabled' : '') + '>' + escapeHtml(opt) + '</button>';
         }).join('') +
+        (answered !== null && q.explanation
+          ? '<div class="quiz-explain"><strong>Explanation:</strong> ' + escapeHtml(q.explanation) + '</div>' +
+            '<button class="retry-btn" id="next-q" style="margin-top:14px;">' +
+            (current === questions.length - 1 ? 'See results →' : 'Next question →') + '</button>'
+          : '') +
         '<button class="back-btn" id="back-btn">← Generate new set</button>';
 
       document.querySelectorAll('.option').forEach(btn => {
@@ -1416,9 +1448,14 @@
           quizAnswered[current] = idx;
           if (idx === q.correct) score++;
           render();
-          setTimeout(() => { current++; render(); }, 1100);
+          // With explanations (Premium) the user clicks Next; otherwise auto-advance
+          if (!q.explanation) {
+            setTimeout(() => { current++; render(); }, 1100);
+          }
         });
       });
+      const nextQ = document.getElementById('next-q');
+      if (nextQ) nextQ.addEventListener('click', () => { current++; render(); });
       document.getElementById('back-btn').addEventListener('click', resetToInput);
     };
     render();
@@ -1437,7 +1474,8 @@
     resultsDiv.innerHTML =
       '<div class="results-header">' +
         '<span class="results-title">Key points</span>' +
-        '<div class="toolbar"><button class="tool-btn" id="copy-btn">⧉ Copy all</button></div>' +
+        '<div class="toolbar"><button class="tool-btn" id="copy-btn">⧉ Copy</button>' +
+        (isPremium() ? '<button class="tool-btn" id="pdf-btn">⬇ PDF</button>' : '') + '</div>' +
       '</div>' +
       points.map((pt, i) =>
         '<div class="point-item">' +
@@ -1449,6 +1487,8 @@
     document.getElementById('copy-btn').addEventListener('click', () => {
       copyToClipboard(points.map((p, i) => (i + 1) + '. ' + p).join('\n'));
     });
+    const sumPdf = document.getElementById('pdf-btn');
+    if (sumPdf) sumPdf.addEventListener('click', exportPdf);
     document.getElementById('back-btn').addEventListener('click', resetToInput);
   }
 
@@ -1467,6 +1507,72 @@
       catch (e) { showToast('Could not copy'); }
       document.body.removeChild(ta);
     }
+  }
+
+  /* ===================== EXPORT (Premium) ===================== */
+  function downloadFile(name, content, type) {
+    const blob = new Blob([content], { type: type || 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = name;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+  }
+
+  function exportAnki() {
+    const cards = (currentData && currentData.cards) || [];
+    if (!cards.length) { showToast('Nothing to export'); return; }
+    const text = cards.map(function (c) {
+      return String(c.front).replace(/\s+/g, ' ') + '\t' + String(c.back).replace(/\s+/g, ' ');
+    }).join('\n');
+    downloadFile('snapwise-flashcards.txt', text);
+    showToast('Downloaded — in Anki use File → Import');
+  }
+
+  function exportPdf() {
+    const d = currentData || {};
+    let title = 'Study set';
+    let body = '';
+    if (currentView === 'flashcards') {
+      title = 'Flashcards';
+      body = (d.cards || []).map(function (c, i) {
+        return '<div class="item"><div class="q">' + (i + 1) + '. ' + escapeHtml(c.front) +
+          '</div><div class="a">' + escapeHtml(c.back) + '</div></div>';
+      }).join('');
+    } else if (currentView === 'quiz') {
+      title = 'Practice quiz';
+      body = (d.questions || []).map(function (q, i) {
+        const opts = (q.options || []).map(function (o, j) {
+          return '<div class="opt">' + String.fromCharCode(65 + j) + '. ' + escapeHtml(o) +
+            (j === q.correct ? '  <strong>(correct)</strong>' : '') + '</div>';
+        }).join('');
+        return '<div class="item"><div class="q">' + (i + 1) + '. ' + escapeHtml(q.question) + '</div>' +
+          opts + (q.explanation ? '<div class="a">' + escapeHtml(q.explanation) + '</div>' : '') + '</div>';
+      }).join('');
+    } else {
+      title = 'Key points';
+      body = (d.points || []).map(function (p, i) {
+        return '<div class="item"><div class="q">' + (i + 1) + '. ' + escapeHtml(p) + '</div></div>';
+      }).join('');
+    }
+    if (!body) { showToast('Nothing to export'); return; }
+    const w = window.open('', '_blank');
+    if (!w) { showToast('Allow pop-ups to export a PDF'); return; }
+    w.document.write(
+      '<!DOCTYPE html><html><head><title>Snapwise — ' + title + '</title><style>' +
+      'body{font-family:Arial,Helvetica,sans-serif;color:#111;padding:40px;max-width:700px;margin:0 auto;}' +
+      'h1{font-size:22px;margin-bottom:4px;}.sub{color:#666;font-size:13px;margin-bottom:24px;}' +
+      '.item{margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid #ddd;page-break-inside:avoid;}' +
+      '.q{font-weight:bold;font-size:14px;}.opt{font-size:13px;margin:3px 0 3px 14px;}' +
+      '.a{color:#444;font-size:13px;margin-top:5px;}' +
+      '</style></head><body><h1>Snapwise — ' + title + '</h1>' +
+      '<div class="sub">Generated study set</div>' + body +
+      '<scr' + 'ipt>window.onload=function(){window.print();};</scr' + 'ipt></body></html>'
+    );
+    w.document.close();
   }
 
   /* ===================== HISTORY VIEW ===================== */
@@ -1529,6 +1635,7 @@
     const u = getUsage();
     const h = getHistory();
     const pro = isPro();
+    const planName = isPremium() ? 'Premium' : pro ? 'Pro' : 'Free';
     document.getElementById('section-settings').innerHTML =
       '<div class="section-head">' +
         '<h1 class="page-title">Settings</h1>' +
@@ -1537,8 +1644,8 @@
       '<div class="settings-card">' +
         '<div class="sc-row">' +
           '<div><div class="sc-title">Current plan</div>' +
-          '<div class="sc-sub">' + (pro ? 'Snapwise Pro — unlimited generations' : 'Free — ' + FREE_LIMIT + ' study sets per day') + '</div></div>' +
-          (pro ? '<span class="pro-badge">✦ Pro</span>'
+          '<div class="sc-sub">' + (pro ? 'Snapwise ' + planName + ' — unlimited generations' : 'Free — ' + FREE_LIMIT + ' study sets per day') + '</div></div>' +
+          (pro ? '<span class="pro-badge">✦ ' + planName + '</span>'
                : '<button class="btn-upgrade" onclick="showUpgradeModal()">✦ Upgrade</button>') +
         '</div>' +
         '<div class="sc-row">' +
