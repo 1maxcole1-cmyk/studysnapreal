@@ -11,7 +11,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { mode, topic, imageBase64, imageType } = req.body || {};
+    const { mode, topic, imageBase64, imageType, isPro } = req.body || {};
 
     // Validate inputs
     if (!mode || (!topic && !imageBase64)) {
@@ -40,8 +40,11 @@ export default async function handler(req, res) {
       userContent = `Topic: ${topic}\n\n${modePrompts[mode]}`;
     }
 
-    // Call the Groq API server-side (API key stays secret)
-    const model = 'meta-llama/llama-4-scout-17b-16e-instruct';
+    // Call the Groq API server-side (API key stays secret).
+    // Pro/Premium members get the larger, smarter model; free users get the fast one.
+    const model = isPro
+      ? 'meta-llama/llama-4-maverick-17b-128e-instruct'
+      : 'meta-llama/llama-4-scout-17b-16e-instruct';
     const groqRes = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -51,7 +54,7 @@ export default async function handler(req, res) {
       body: JSON.stringify({
         model,
         messages: [
-          { role: 'system', content: 'You are a helpful study assistant. Always respond with valid JSON only â€” no markdown, no extra text, no code fences.' },
+          { role: 'system', content: 'You are a helpful study assistant. Always respond with valid JSON only — no markdown, no extra text, no code fences.' },
           { role: 'user', content: userContent }
         ],
         max_tokens: 4096,
