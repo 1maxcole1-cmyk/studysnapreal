@@ -48,10 +48,8 @@ export default async function handler(req, res) {
     }
 
     // Call the Groq API server-side (API key stays secret).
-    // Paid members (Pro or Premium) get the larger, smarter model.
-    const model = (plan === 'pro' || plan === 'premium')
-      ? 'meta-llama/llama-4-maverick-17b-128e-instruct'
-      : 'meta-llama/llama-4-scout-17b-16e-instruct';
+    // One reliable, vision-capable model for every tier.
+    const model = 'meta-llama/llama-4-scout-17b-16e-instruct';
     const groqRes = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
       headers: {
