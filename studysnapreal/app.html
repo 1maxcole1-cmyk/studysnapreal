@@ -3,8 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Snapwise — Generate Study Materials</title>
+<title>Snapwize — Generate Study Materials</title>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<!-- Google AdSense -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5942500580735009" crossorigin="anonymous"></script>
 <style>
   :root {
     --bg: #06060f;
@@ -820,7 +822,7 @@
   <nav>
     <a href="index.html" class="nav-logo">
       <div class="logo-mark">📚</div>
-      <span class="logo-name">Snapwise</span>
+      <span class="logo-name">Snapwize</span>
     </a>
     <div class="nav-right">
       <div class="usage-badge" id="usage-badge"><strong>2</strong> free left today</div>
@@ -859,7 +861,7 @@
 
     <div class="sidebar-spacer"></div>
     <div class="sidebar-pro" id="sidebar-pro">
-      <h4>✦ Snapwise Pro</h4>
+      <h4>✦ Snapwize Pro</h4>
       <p>Unlimited generations, no ads, faster results.</p>
       <button onclick="showUpgradeModal()">Upgrade</button>
     </div>
@@ -959,7 +961,7 @@
 <div class="modal-overlay" id="upgrade-modal">
   <div class="modal modal-wide">
     <div class="modal-icon">✦</div>
-    <h2>Upgrade Snapwise</h2>
+    <h2>Upgrade Snapwize</h2>
     <p class="modal-sub">You're on the Free plan — 2 study sets a day. Pick a plan to study without limits:</p>
     <div class="tier-grid">
       <div class="tier-card">
@@ -1039,17 +1041,17 @@
 
   /* ===================== USAGE / LIMIT ===================== */
   function getPlan() {
-    const p = localStorage.getItem('snapwise_plan');
+    const p = localStorage.getItem('snapwize_plan');
     return (p === 'pro' || p === 'premium') ? p : 'free';
   }
   function isPro() { return getPlan() !== 'free'; }
   function isPremium() { return getPlan() === 'premium'; }
   function getUsage() {
-    let u = lsGet('snapwise_usage');
+    let u = lsGet('snapwize_usage');
     if (!u || u.date !== todayStr()) u = { date: todayStr(), count: 0 };
     return u;
   }
-  function saveUsage(u) { lsSet('snapwise_usage', u); }
+  function saveUsage(u) { lsSet('snapwize_usage', u); }
   function generationsLeft() {
     if (isPro()) return Infinity;
     return Math.max(0, FREE_LIMIT - getUsage().count);
@@ -1078,22 +1080,22 @@
   }
 
   /* ===================== HISTORY ===================== */
-  function getHistory() { return lsGet('snapwise_history') || []; }
+  function getHistory() { return lsGet('snapwize_history') || []; }
   function saveToHistory(item) {
     const h = getHistory();
     h.unshift(item);
     if (h.length > 60) h.length = 60;
-    lsSet('snapwise_history', h);
+    lsSet('snapwize_history', h);
   }
   function deleteHistoryItem(id) {
     if (!confirm('Delete this study set? This cannot be undone.')) return;
-    lsSet('snapwise_history', getHistory().filter(x => x.id !== id));
+    lsSet('snapwize_history', getHistory().filter(x => x.id !== id));
     renderHistory(historyFilter);
     showToast('Study set deleted');
   }
   function clearAllHistory() {
     if (!confirm('Clear your entire study library? This cannot be undone.')) return;
-    localStorage.removeItem('snapwise_history');
+    localStorage.removeItem('snapwize_history');
     renderSettings();
     showToast('Library cleared');
   }
@@ -1528,7 +1530,7 @@
     const text = cards.map(function (c) {
       return String(c.front).replace(/\s+/g, ' ') + '\t' + String(c.back).replace(/\s+/g, ' ');
     }).join('\n');
-    downloadFile('snapwise-flashcards.txt', text);
+    downloadFile('snapwize-flashcards.txt', text);
     showToast('Downloaded — in Anki use File → Import');
   }
 
@@ -1562,13 +1564,13 @@
     const w = window.open('', '_blank');
     if (!w) { showToast('Allow pop-ups to export a PDF'); return; }
     w.document.write(
-      '<!DOCTYPE html><html><head><title>Snapwise — ' + title + '</title><style>' +
+      '<!DOCTYPE html><html><head><title>Snapwize — ' + title + '</title><style>' +
       'body{font-family:Arial,Helvetica,sans-serif;color:#111;padding:40px;max-width:700px;margin:0 auto;}' +
       'h1{font-size:22px;margin-bottom:4px;}.sub{color:#666;font-size:13px;margin-bottom:24px;}' +
       '.item{margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid #ddd;page-break-inside:avoid;}' +
       '.q{font-weight:bold;font-size:14px;}.opt{font-size:13px;margin:3px 0 3px 14px;}' +
       '.a{color:#444;font-size:13px;margin-top:5px;}' +
-      '</style></head><body><h1>Snapwise — ' + title + '</h1>' +
+      '</style></head><body><h1>Snapwize — ' + title + '</h1>' +
       '<div class="sub">Generated study set</div>' + body +
       '<scr' + 'ipt>window.onload=function(){window.print();};</scr' + 'ipt></body></html>'
     );
@@ -1644,7 +1646,7 @@
       '<div class="settings-card">' +
         '<div class="sc-row">' +
           '<div><div class="sc-title">Current plan</div>' +
-          '<div class="sc-sub">' + (pro ? 'Snapwise ' + planName + ' — unlimited generations' : 'Free — ' + FREE_LIMIT + ' study sets per day') + '</div></div>' +
+          '<div class="sc-sub">' + (pro ? 'Snapwize ' + planName + ' — unlimited generations' : 'Free — ' + FREE_LIMIT + ' study sets per day') + '</div></div>' +
           (pro ? '<span class="pro-badge">✦ ' + planName + '</span>'
                : '<button class="btn-upgrade" onclick="showUpgradeModal()">✦ Upgrade</button>') +
         '</div>' +
@@ -1661,7 +1663,7 @@
         '</div>' +
       '</div>' +
       '<div class="settings-card about">' +
-        '<div class="sc-title">Snapwise</div>' +
+        '<div class="sc-title">Snapwize</div>' +
         '<div class="sc-sub">Version 1.0 · AI-powered study tools. Your study sets are saved privately in this browser.</div>' +
       '</div>';
   }
