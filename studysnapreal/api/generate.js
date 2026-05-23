@@ -40,7 +40,7 @@ export default async function handler(req, res) {
     if (imageBase64) {
       const dataUrl = `data:${imageType || 'image/jpeg'};base64,${imageBase64}`;
       userContent = [
-        { type: 'text', text: `Based on this image${topic ? ' about ' + topic : ''}, ${modePrompts[mode]}` },
+        { type: 'text', text: `Carefully read all of the content shown in this image, then ${modePrompts[mode]} Base everything strictly and only on what is actually shown in the image.` },
         { type: 'image_url', image_url: { url: dataUrl } }
       ];
     } else {
