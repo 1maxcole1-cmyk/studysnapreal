@@ -18,17 +18,27 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Missing required fields' });
     }
 
-    // Premium members get bigger study sets and quiz answer explanations
+    // Paid members (Pro & Premium) get study sets sized to fit the material;
+    // free users get a fixed count. Premium also gets quiz answer explanations.
+    const paid = plan === 'pro' || plan === 'premium';
     const premium = plan === 'premium';
-    const fcCount = premium ? 20 : 14;
-    const quizCount = premium ? 20 : 15;
+
+    const fcInstr = paid
+      ? 'as many flashcards as the material needs to be covered well — choose a number between 10 and 24 that best fits how much there is to learn'
+      : 'exactly 14 flashcards';
+    const quizInstr = paid
+      ? 'as many multiple choice questions as the material needs — choose a number between 10 and 25 that best fits how much there is to study'
+      : 'exactly 15 multiple choice questions';
+    const summaryInstr = paid
+      ? 'the key points that best capture the material — choose a number between 8 and 20 based on how much there is to study'
+      : 'the 12-14 most important key points to study';
     const explainField = premium ? ',"explanation":"one-sentence explanation of why the correct answer is right"' : '';
     const explainNote = premium ? ' Include a clear one-sentence explanation for every question.' : '';
 
     const modePrompts = {
-      flashcards: `Generate exactly ${fcCount} flashcards from this material. Return ONLY valid JSON: {"cards":[{"front":"Question or term","back":"Answer or definition"},...]}. Cover the most important concepts thoroughly. No preamble, no markdown.`,
-      quiz: `Generate exactly ${quizCount} multiple choice questions. Return ONLY valid JSON: {"questions":[{"question":"...","options":["A","B","C","D"],"correct":0${explainField}},...]} where correct is the 0-based index.${explainNote} Make the questions varied in difficulty and cover the material thoroughly. No preamble, no markdown.`,
-      summary: `Extract the 12-14 most important key points to study. Return ONLY valid JSON: {"points":["Key point 1","Key point 2",...]}. Make each concise and clear. No preamble, no markdown.`
+      flashcards: `Generate ${fcInstr}. Return ONLY valid JSON: {"cards":[{"front":"Question or term","back":"Answer or definition"},...]}. Cover the most important concepts thoroughly. No preamble, no markdown.`,
+      quiz: `Generate ${quizInstr}. Return ONLY valid JSON: {"questions":[{"question":"...","options":["A","B","C","D"],"correct":0${explainField}},...]} where correct is the 0-based index.${explainNote} Make the questions varied in difficulty and cover the material thoroughly. No preamble, no markdown.`,
+      summary: `Identify ${summaryInstr}. Return ONLY valid JSON: {"points":["Key point 1","Key point 2",...]}. Make each concise and clear. No preamble, no markdown.`
     };
 
     if (!modePrompts[mode]) {
