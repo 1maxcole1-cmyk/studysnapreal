@@ -52,7 +52,7 @@ export default async function handler(req, res) {
     if (imageBase64) {
       const dataUrl = `data:${imageType || 'image/jpeg'};base64,${imageBase64}`;
       userContent = [
-        { type: 'text', text: `Carefully read all of the content shown in this image, then ${modePrompts[mode]} Base everything strictly and only on what is actually shown in the image.` },
+        { type: 'text', text: `Read every piece of text and every concept shown in this image — do not skip, shorten, or summarise any of it. Then ${modePrompts[mode]} The set must cover ALL of the material in the image — every section, fact, and detail — not just part of it. Base everything strictly on what is actually shown in the image.` },
         { type: 'image_url', image_url: { url: dataUrl } }
       ];
     } else {
