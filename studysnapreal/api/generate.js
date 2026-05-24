@@ -24,14 +24,14 @@ export default async function handler(req, res) {
     const premium = plan === 'premium';
 
     const fcInstr = paid
-      ? 'at least 35 flashcards, and up to 60 if the material is broad — make the set thorough enough to fully prepare for a real exam; never fewer than 35'
-      : 'exactly 20 flashcards';
+      ? 'one flashcard for each distinct concept, term, or fact in the material — cover all of it, but do not pad with filler or repeated cards. Make the set exactly as long as the material genuinely warrants, up to 60 cards'
+      : 'one flashcard for each key concept in the material, with no filler or repeats — up to 25 cards';
     const quizInstr = paid
-      ? 'at least 35 multiple choice questions, and up to 60 if the material is broad — make the quiz thorough enough to fully prepare for a real exam; never fewer than 35'
-      : 'exactly 20 multiple choice questions';
+      ? 'one well-crafted multiple choice question for each distinct concept, fact, or idea in the material — cover all of it, but do not pad with filler, trivial, or repeated questions. Make the quiz exactly as long as the material genuinely warrants: a short topic gets a short quiz, a broad one gets a long exam-ready quiz of up to 60 questions'
+      : 'one multiple choice question for each key concept in the material, with no filler or repeats — up to 25 questions';
     const summaryInstr = paid
-      ? 'at least 24 key points, and up to 40 if the material is broad — never fewer than 24'
-      : 'the 16 most important key points to study';
+      ? 'one key point for each distinct important idea in the material — cover all of it with no padding or repetition, up to 40 points'
+      : 'the most important key points in the material, with no filler — up to 18 points';
     const explainField = premium ? ',"explanation":"one-sentence explanation of why the correct answer is right"' : '';
     const explainNote = premium ? ' Include a clear one-sentence explanation for every question.' : '';
 
@@ -52,7 +52,7 @@ export default async function handler(req, res) {
     if (imageBase64) {
       const dataUrl = `data:${imageType || 'image/jpeg'};base64,${imageBase64}`;
       userContent = [
-        { type: 'text', text: `Read every piece of text and every concept shown in this image — do not skip, shorten, or summarise any of it. Then ${modePrompts[mode]} The set must cover ALL of the material in the image — every section, fact, and detail — not just part of it. Base everything strictly on what is actually shown in the image.` },
+        { type: 'text', text: `Read every piece of text shown in this image, even if it is rotated, angled, or small. If the image shows a list of terms, vocabulary words, or definitions, create a separate question or card for EVERY SINGLE term — do not leave any term out. Then ${modePrompts[mode]} The set must cover ALL of the material in the image — every section, term, and detail — not just part of it. Base everything strictly on what is actually shown in the image.` },
         { type: 'image_url', image_url: { url: dataUrl } }
       ];
     } else {
