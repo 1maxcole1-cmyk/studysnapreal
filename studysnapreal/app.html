@@ -1254,7 +1254,7 @@
       const img = new Image();
       img.onload = () => {
         // Shrink large photos so they stay well under the AI's 4MB image limit
-        const MAX = 1280;
+        const MAX = 2200;
         let w = img.width, h = img.height;
         if (w > MAX || h > MAX) {
           if (w >= h) { h = Math.round(h * MAX / w); w = MAX; }
