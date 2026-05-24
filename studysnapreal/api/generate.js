@@ -53,7 +53,7 @@ export default async function handler(req, res) {
     if (imageBase64) {
       const dataUrl = `data:${imageType || 'image/jpeg'};base64,${imageBase64}`;
       userContent = [
-        { type: 'text', text: `Read every term and every piece of text written in this image, even if it is rotated, angled, or small. Create exactly one ${itemWord} for each separate term or item that is actually written in the image — one per item, covering every single one of them. Do NOT invent, pad, repeat, or add anything that is not literally written in the image, and do NOT skip any term. The total count must equal the number of distinct items shown in the image. ${modePrompts[mode]} Ignore any minimum or maximum count mentioned above — the number must match the image exactly.` },
+        { type: 'text', text: `Read every term and every piece of text written in this image, even if it is rotated, angled, or small. Create exactly one ${itemWord} for each separate term or item that is actually written in the image — one per item, covering every single one of them. Do NOT invent, pad, repeat, or add anything that is not literally written in the image, and do NOT skip any term. The total count must equal the number of distinct items shown in the image. Never ask about the same term, word, or concept more than once — every ${itemWord} must be about a different item. ${modePrompts[mode]} Ignore any minimum or maximum count mentioned above — the number must match the image exactly.` },
         { type: 'image_url', image_url: { url: dataUrl } }
       ];
     } else {
@@ -98,6 +98,27 @@ export default async function handler(req, res) {
 
     const clean = text.replace(/```json|```/g, '').trim();
     const parsed = JSON.parse(clean);
+
+    // Remove duplicates the AI may have repeated
+    const norm = (s) => String(s == null ? '' : s).toLowerCase().replace(/[^a-z0-9]/g, '');
+    const dedupe = (arr, keyFn) => {
+      const seen = new Set();
+      return arr.filter((item) => {
+        const k = keyFn(item);
+        if (!k || seen.has(k)) return false;
+        seen.add(k);
+        return true;
+      });
+    };
+    if (Array.isArray(parsed.cards)) {
+      parsed.cards = dedupe(parsed.cards, (c) => norm(c && c.front));
+    }
+    if (Array.isArray(parsed.questions)) {
+      parsed.questions = dedupe(parsed.questions, (q) => norm(q && q.question));
+    }
+    if (Array.isArray(parsed.points)) {
+      parsed.points = dedupe(parsed.points, (p) => norm(p));
+    }
 
     return res.status(200).json(parsed);
 
