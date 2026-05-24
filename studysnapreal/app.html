@@ -775,6 +775,51 @@
   }
   .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
+  /* LIBRARY SEARCH */
+  .hist-search {
+    width: 100%;
+    padding: 10px 14px;
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    border-radius: 10px;
+    color: var(--text);
+    font-size: 14px;
+    font-family: 'DM Sans', sans-serif;
+    margin-bottom: 16px;
+  }
+  .hist-search:focus { outline: none; border-color: rgba(200,255,0,0.4); }
+  .hist-search::placeholder { color: var(--muted2); }
+
+  /* FOCUS TIMER */
+  .timer-wrap { text-align: center; padding: 30px 16px; }
+  .timer-display {
+    font-family: 'Syne', sans-serif;
+    font-size: 88px;
+    font-weight: 800;
+    color: var(--accent);
+    letter-spacing: 0.02em;
+    text-shadow: 0 0 40px var(--accent-glow);
+    margin-bottom: 26px;
+    line-height: 1;
+  }
+  .timer-presets { display: flex; gap: 10px; justify-content: center; margin-bottom: 22px; flex-wrap: wrap; }
+  .timer-preset {
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    color: var(--muted);
+    border-radius: 100px;
+    padding: 8px 18px;
+    font-size: 13px;
+    font-family: 'DM Sans', sans-serif;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .timer-preset:hover { color: var(--text); }
+  .timer-preset.active { background: var(--accent-dim); border-color: rgba(200,255,0,0.3); color: var(--accent); }
+  .timer-controls { display: flex; gap: 10px; justify-content: center; }
+  .timer-controls .retry-btn { min-width: 130px; }
+  @media (max-width: 560px) { .timer-display { font-size: 64px; } }
+
   /* PRO / PREMIUM — completely ad-free, no empty ad spaces */
   body.pro .ad-inline,
   body.pro .ad-sidebar,
@@ -836,6 +881,7 @@
     <button class="mnav-item active" data-nav="generate" onclick="showSection('generate')">⚡ Generate</button>
     <button class="mnav-item" data-nav="flashcards" onclick="showSection('history','flashcards')">🃏 Flashcards</button>
     <button class="mnav-item" data-nav="quizzes" onclick="showSection('history','quiz')">✅ Quizzes</button>
+    <button class="mnav-item" data-nav="timer" onclick="showSection('timer')">⏱️ Timer</button>
     <button class="mnav-item" data-nav="settings" onclick="showSection('settings')">⚙️ Settings</button>
   </div>
 
@@ -844,6 +890,9 @@
     <div class="sidebar-label">Generate</div>
     <button class="sidebar-item active" data-nav="generate" onclick="showSection('generate')">
       <span class="icon">⚡</span> New study set
+    </button>
+    <button class="sidebar-item" data-nav="timer" onclick="showSection('timer')">
+      <span class="icon">⏱️</span> Focus timer
     </button>
 
     <div class="sidebar-label">Library</div>
@@ -944,6 +993,9 @@
 
     <!-- ========== SETTINGS SECTION ========== -->
     <div id="section-settings" style="display:none;"></div>
+
+    <!-- ========== FOCUS TIMER SECTION ========== -->
+    <div id="section-timer" style="display:none;"></div>
 
   </main>
 
@@ -1090,7 +1142,7 @@
   function deleteHistoryItem(id) {
     if (!confirm('Delete this study set? This cannot be undone.')) return;
     lsSet('snapwize_history', getHistory().filter(x => x.id !== id));
-    renderHistory(historyFilter);
+    renderHistoryResults();
     showToast('Study set deleted');
   }
   function clearAllHistory() {
@@ -1098,6 +1150,29 @@
     localStorage.removeItem('snapwize_history');
     renderSettings();
     showToast('Library cleared');
+  }
+
+  /* ===================== STREAK & STATS ===================== */
+  function bumpStreak() {
+    let s = lsGet('snapwize_streak') || { lastDay: null, count: 0, best: 0 };
+    const today = todayStr();
+    if (s.lastDay === today) return;
+    const yd = new Date();
+    yd.setDate(yd.getDate() - 1);
+    const yesterday = yd.toISOString().slice(0, 10);
+    s.count = (s.lastDay === yesterday) ? (s.count || 0) + 1 : 1;
+    s.best = Math.max(s.best || 0, s.count);
+    s.lastDay = today;
+    lsSet('snapwize_streak', s);
+  }
+  function getStreak() {
+    const s = lsGet('snapwize_streak');
+    if (!s || !s.lastDay) return 0;
+    const today = todayStr();
+    const yd = new Date();
+    yd.setDate(yd.getDate() - 1);
+    const yesterday = yd.toISOString().slice(0, 10);
+    return (s.lastDay === today || s.lastDay === yesterday) ? (s.count || 0) : 0;
   }
 
   /* ===================== NAVIGATION ===================== */
@@ -1108,7 +1183,7 @@
   }
   function showSection(section, filter) {
     closeModal();
-    ['generate', 'history', 'settings'].forEach(s => {
+    ['generate', 'history', 'settings', 'timer'].forEach(s => {
       const el = document.getElementById('section-' + s);
       if (el) el.style.display = (s === section) ? 'block' : 'none';
     });
@@ -1122,6 +1197,9 @@
     } else if (section === 'settings') {
       setActiveNav('settings');
       renderSettings();
+    } else if (section === 'timer') {
+      setActiveNav('timer');
+      renderTimer();
     }
     window.scrollTo(0, 0);
   }
@@ -1247,6 +1325,9 @@
         data: parsed,
         createdAt: new Date().toISOString()
       });
+
+      // count toward the daily study streak
+      bumpStreak();
 
       displayResult(selectedMode, parsed);
 
@@ -1598,8 +1679,6 @@
   function renderHistory(filter) {
     filter = filter || 'all';
     historyFilter = filter;
-    const all = getHistory();
-    const list = filter === 'all' ? all : all.filter(x => x.type === filter);
 
     const tab = (id, label) =>
       '<button class="hist-tab' + (filter === id ? ' active' : '') + '" ' +
@@ -1609,12 +1688,31 @@
       tab('all', 'All') + tab('flashcards', 'Flashcards') +
       tab('quiz', 'Quizzes') + tab('summary', 'Key points') + '</div>';
 
+    document.getElementById('section-history').innerHTML =
+      '<div class="section-head">' +
+        '<h1 class="page-title">Your study library</h1>' +
+        '<p class="page-sub">Every set you generate is saved here automatically.</p>' +
+      '</div>' + tabs +
+      '<input class="hist-search" id="hist-search" type="text" ' +
+      'placeholder="Search your study sets by topic..." oninput="renderHistoryResults()">' +
+      '<div id="history-results"></div>';
+    renderHistoryResults();
+  }
+
+  function renderHistoryResults() {
+    const filter = historyFilter;
+    const searchEl = document.getElementById('hist-search');
+    const q = (searchEl ? searchEl.value : '').trim().toLowerCase();
+    const all = getHistory();
+    let list = filter === 'all' ? all : all.filter(x => x.type === filter);
+    if (q) list = list.filter(x => (x.topic || '').toLowerCase().indexOf(q) !== -1);
+
     let body;
     if (!list.length) {
       body = '<div class="empty-state">' +
-        '<div class="empty-icon">📭</div>' +
-        '<p>No saved study sets here yet.</p>' +
-        '<button class="retry-btn" onclick="showSection(\'generate\')">Create a study set</button>' +
+        '<div class="empty-icon">' + (q ? '🔍' : '📭') + '</div>' +
+        '<p>' + (q ? 'No study sets match your search.' : 'No saved study sets here yet.') + '</p>' +
+        (q ? '' : '<button class="retry-btn" onclick="showSection(\'generate\')">Create a study set</button>') +
         '</div>';
     } else {
       body = '<div class="history-grid">' + list.map(it => {
@@ -1641,12 +1739,7 @@
         '</div>';
       }).join('') + '</div>';
     }
-
-    document.getElementById('section-history').innerHTML =
-      '<div class="section-head">' +
-        '<h1 class="page-title">Your study library</h1>' +
-        '<p class="page-sub">Every set you generate is saved here automatically.</p>' +
-      '</div>' + tabs + body;
+    document.getElementById('history-results').innerHTML = body;
   }
 
   /* ===================== SETTINGS VIEW ===================== */
@@ -1654,6 +1747,7 @@
     const u = getUsage();
     const h = getHistory();
     const pro = isPro();
+    const streak = getStreak();
     const planName = isPremium() ? 'Premium' : pro ? 'Pro' : 'Free';
     document.getElementById('section-settings').innerHTML =
       '<div class="section-head">' +
@@ -1674,6 +1768,18 @@
       '</div>' +
       '<div class="settings-card">' +
         '<div class="sc-row">' +
+          '<div><div class="sc-title">🔥 Study streak</div>' +
+          '<div class="sc-sub">' + (streak > 0 ? 'Keep it going — study a little every day.' : 'Generate a study set today to start your streak.') + '</div></div>' +
+          '<span class="pro-badge">' + streak + ' day' + (streak === 1 ? '' : 's') + '</span>' +
+        '</div>' +
+        '<div class="sc-row">' +
+          '<div><div class="sc-title">Total study sets made</div>' +
+          '<div class="sc-sub">Everything you\'ve generated so far</div></div>' +
+          '<span class="pro-badge">' + h.length + '</span>' +
+        '</div>' +
+      '</div>' +
+      '<div class="settings-card">' +
+        '<div class="sc-row">' +
           '<div><div class="sc-title">Saved study sets</div>' +
           '<div class="sc-sub">' + h.length + ' set' + (h.length === 1 ? '' : 's') + ' stored on this device</div></div>' +
           '<button class="btn-danger" onclick="clearAllHistory()">Clear all</button>' +
@@ -1690,9 +1796,82 @@
       '</div>';
   }
 
+  /* ===================== FOCUS TIMER ===================== */
+  let timerTotal = 25 * 60;
+  let timerLeft = 25 * 60;
+  let timerInterval = null;
+
+  function fmtTime(secs) {
+    const m = Math.floor(secs / 60), s = secs % 60;
+    return (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s;
+  }
+  function renderTimer() {
+    const running = timerInterval !== null;
+    const preset = (mins) =>
+      '<button class="timer-preset' + (timerTotal === mins * 60 ? ' active' : '') +
+      '" onclick="setTimerPreset(' + mins + ')">' + mins + ' min</button>';
+    document.getElementById('section-timer').innerHTML =
+      '<div class="section-head">' +
+        '<h1 class="page-title">Focus timer</h1>' +
+        '<p class="page-sub">Study in focused sessions — pick a length and press start.</p>' +
+      '</div>' +
+      '<div class="timer-wrap">' +
+        '<div class="timer-display" id="timer-display">' + fmtTime(timerLeft) + '</div>' +
+        '<div class="timer-presets">' + preset(15) + preset(25) + preset(45) + '</div>' +
+        '<div class="timer-controls">' +
+          '<button class="retry-btn" id="timer-toggle">' + (running ? 'Pause' : 'Start') + '</button>' +
+          '<button class="retry-btn alt" id="timer-reset">Reset</button>' +
+        '</div>' +
+      '</div>';
+    document.getElementById('timer-toggle').addEventListener('click', toggleTimer);
+    document.getElementById('timer-reset').addEventListener('click', resetTimer);
+  }
+  function updateTimerDisplay() {
+    const el = document.getElementById('timer-display');
+    if (el) el.textContent = fmtTime(timerLeft);
+  }
+  function stopTimerInterval() {
+    if (timerInterval !== null) { clearInterval(timerInterval); timerInterval = null; }
+  }
+  function setTimerPreset(mins) {
+    stopTimerInterval();
+    timerTotal = mins * 60;
+    timerLeft = mins * 60;
+    renderTimer();
+  }
+  function toggleTimer() {
+    if (timerInterval !== null) {
+      stopTimerInterval();
+      renderTimer();
+    } else {
+      if (timerLeft <= 0) timerLeft = timerTotal;
+      timerInterval = setInterval(function () {
+        timerLeft--;
+        updateTimerDisplay();
+        if (timerLeft <= 0) {
+          stopTimerInterval();
+          renderTimer();
+          showToast("Time's up — great focus session!");
+        }
+      }, 1000);
+      renderTimer();
+    }
+  }
+  function resetTimer() {
+    stopTimerInterval();
+    timerLeft = timerTotal;
+    renderTimer();
+  }
+
   /* ===================== INIT ===================== */
   updateUsageBadge();
   updateLimitNote();
 </script>
+
+<!-- Vercel Web Analytics -->
+<script>
+window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
+</script>
+<script defer src="/_vercel/insights/script.js"></script>
 </body>
 </html>
