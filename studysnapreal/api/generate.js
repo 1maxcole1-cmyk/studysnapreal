@@ -24,21 +24,23 @@ export default async function handler(req, res) {
     const premium = plan === 'premium';
 
     const fcInstr = paid
-      ? 'as many flashcards as the material needs to be covered well — choose a number between 10 and 24 that best fits how much there is to learn'
-      : 'exactly 14 flashcards';
+      ? 'at least 35 flashcards, and up to 60 if the material is broad — make the set thorough enough to fully prepare for a real exam; never fewer than 35'
+      : 'exactly 20 flashcards';
     const quizInstr = paid
-      ? 'as many multiple choice questions as the material needs — choose a number between 10 and 25 that best fits how much there is to study'
-      : 'exactly 15 multiple choice questions';
+      ? 'at least 35 multiple choice questions, and up to 60 if the material is broad — make the quiz thorough enough to fully prepare for a real exam; never fewer than 35'
+      : 'exactly 20 multiple choice questions';
     const summaryInstr = paid
-      ? 'the key points that best capture the material — choose a number between 8 and 20 based on how much there is to study'
-      : 'the 12-14 most important key points to study';
+      ? 'at least 24 key points, and up to 40 if the material is broad — never fewer than 24'
+      : 'the 16 most important key points to study';
     const explainField = premium ? ',"explanation":"one-sentence explanation of why the correct answer is right"' : '';
     const explainNote = premium ? ' Include a clear one-sentence explanation for every question.' : '';
 
+    const quality = ' Every question must be clear, specific, and genuinely test understanding of the material — no vague or trivial questions. Cover a wide range of subtopics and vary the difficulty from easy to hard. All four options must be plausible, with exactly one correct.';
+
     const modePrompts = {
-      flashcards: `Generate ${fcInstr}. Return ONLY valid JSON: {"cards":[{"front":"Question or term","back":"Answer or definition"},...]}. Cover the most important concepts thoroughly. No preamble, no markdown.`,
-      quiz: `Generate ${quizInstr}. Return ONLY valid JSON: {"questions":[{"question":"...","options":["A","B","C","D"],"correct":0${explainField}},...]} where correct is the 0-based index.${explainNote} Make the questions varied in difficulty and cover the material thoroughly. No preamble, no markdown.`,
-      summary: `Identify ${summaryInstr}. Return ONLY valid JSON: {"points":["Key point 1","Key point 2",...]}. Make each concise and clear. No preamble, no markdown.`
+      flashcards: `Generate ${fcInstr}. Each flashcard should teach one important, specific idea — cover the material thoroughly and in depth. Return ONLY valid JSON: {"cards":[{"front":"Question or term","back":"Clear, accurate answer or definition"},...]}. No preamble, no markdown.`,
+      quiz: `Generate ${quizInstr}.${quality} Return ONLY valid JSON: {"questions":[{"question":"...","options":["A","B","C","D"],"correct":0${explainField}},...]} where correct is the 0-based index.${explainNote} No preamble, no markdown.`,
+      summary: `Identify ${summaryInstr}. Each point must be a complete, specific, genuinely useful study takeaway. Return ONLY valid JSON: {"points":["Key point 1","Key point 2",...]}. No preamble, no markdown.`
     };
 
     if (!modePrompts[mode]) {
@@ -72,7 +74,7 @@ export default async function handler(req, res) {
           { role: 'system', content: 'You are a helpful study assistant. Always respond with valid JSON only — no markdown, no extra text, no code fences.' },
           { role: 'user', content: userContent }
         ],
-        max_tokens: 4096,
+        max_tokens: 8000,
         temperature: 0.7,
         response_format: { type: 'json_object' }
       })
