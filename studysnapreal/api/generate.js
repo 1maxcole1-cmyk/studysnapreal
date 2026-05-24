@@ -48,11 +48,12 @@ export default async function handler(req, res) {
     }
 
     // Build the user message for Groq (OpenAI-compatible chat format)
+    const itemWord = mode === 'flashcards' ? 'flashcard' : mode === 'quiz' ? 'multiple choice question' : 'key point';
     let userContent;
     if (imageBase64) {
       const dataUrl = `data:${imageType || 'image/jpeg'};base64,${imageBase64}`;
       userContent = [
-        { type: 'text', text: `Read every piece of text shown in this image, even if it is rotated, angled, or small. If the image shows a list of terms, vocabulary words, or definitions, create a separate question or card for EVERY SINGLE term — do not leave any term out. Then ${modePrompts[mode]} The set must cover ALL of the material in the image — every section, term, and detail — not just part of it. Base everything strictly on what is actually shown in the image.` },
+        { type: 'text', text: `Read every term and every piece of text written in this image, even if it is rotated, angled, or small. Create exactly one ${itemWord} for each separate term or item that is actually written in the image — one per item, covering every single one of them. Do NOT invent, pad, repeat, or add anything that is not literally written in the image, and do NOT skip any term. The total count must equal the number of distinct items shown in the image. ${modePrompts[mode]} Ignore any minimum or maximum count mentioned above — the number must match the image exactly.` },
         { type: 'image_url', image_url: { url: dataUrl } }
       ];
     } else {
