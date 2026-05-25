@@ -65,7 +65,7 @@
   .step-text { font-size: 14px; color: var(--muted); padding-top: 4px; }
   .step-text strong { color: var(--text); font-weight: 500; }
 
-  .ad-banner { background: var(--surface2); border: 1px dashed var(--muted2); border-radius: 10px; padding: 16px; text-align: center; color: var(--muted2); font-size: 12px; margin: 40px auto; max-width: 728px; height: 90px; display: flex; align-items: center; justify-content: center; letter-spacing: 0.05em; text-transform: uppercase; }
+  .ad-banner { margin: 40px auto; max-width: 728px; text-align: center; }
 
   .stats { display: flex; justify-content: center; gap: 48px; flex-wrap: wrap; padding: 48px 5%; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); position: relative; z-index: 1; }
   .stat { text-align: center; }
@@ -195,7 +195,7 @@
 </section>
 
 <div style="max-width:1100px; margin:0 auto; padding:0 5%; position:relative; z-index:1;">
-  <div class="ad-banner">Advertisement — Google AdSense (728×90)</div>
+  <div class="ad-banner"><ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-5942500580735009" data-ad-slot="9604290799" data-ad-format="auto" data-full-width-responsive="true"></ins></div>
 </div>
 
 <div class="stats">
@@ -241,7 +241,7 @@
 </section>
 
 <div style="max-width:1100px; margin:0 auto; padding:0 5%; position:relative; z-index:1;">
-  <div class="ad-banner">Advertisement — Google AdSense (728×90)</div>
+  <div class="ad-banner"><ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-5942500580735009" data-ad-slot="9604290799" data-ad-format="auto" data-full-width-responsive="true"></ins></div>
 </div>
 
 <section class="pricing-section" id="pricing">
@@ -303,8 +303,8 @@
 </section>
 
 <div style="max-width:1100px; margin:0 auto; padding:0 5% 40px; position:relative; z-index:1; display:flex; gap:20px; justify-content:center; flex-wrap:wrap;">
-  <div class="ad-banner" style="width:300px; height:250px; max-width:100%;">Advertisement — AdSense (300×250)</div>
-  <div class="ad-banner" style="width:300px; height:250px; max-width:100%;">Advertisement — AdSense (300×250)</div>
+  <div class="ad-banner" style="max-width:320px;"><ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-5942500580735009" data-ad-slot="9604290799" data-ad-format="auto" data-full-width-responsive="true"></ins></div>
+  <div class="ad-banner" style="max-width:320px;"><ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-5942500580735009" data-ad-slot="9604290799" data-ad-format="auto" data-full-width-responsive="true"></ins></div>
 </div>
 
 <section class="cta-section">
@@ -330,7 +330,11 @@
   // so they only load when this check is false.
   var sp = localStorage.getItem('snapwize_plan');
   if (sp === 'pro' || sp === 'premium') {
-    document.querySelectorAll('.ad-banner').forEach(function (el) { el.style.display = 'none'; });
+    document.querySelectorAll('.ad-banner').forEach(function (el) { el.remove(); });
+  } else {
+    document.querySelectorAll('.ad-banner ins.adsbygoogle').forEach(function () {
+      try { (window.adsbygoogle = window.adsbygoogle || []).push({}); } catch (e) {}
+    });
   }
 </script>
 
