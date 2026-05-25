@@ -850,8 +850,10 @@
 
   /* PRO / PREMIUM — completely ad-free, no empty ad spaces */
   body.pro .ad-inline,
+  body.pro .ad-slot,
   body.pro .ad-sidebar,
   body.pro #ad-after-results { display: none !important; }
+  .ad-slot { margin: 20px 0; text-align: center; }
   body.pro .layout { grid-template-columns: 260px 1fr; }
   body.pro main { margin: 0 auto; max-width: 1160px; width: 100%; }
 
@@ -993,11 +995,11 @@
         <div id="error-area"></div>
         <div id="limit-note" class="limit-note"></div>
 
-        <div class="ad-inline" id="ad-inline">
-          Advertisement — Google AdSense (728×90)
+        <div class="ad-slot" id="ad-inline">
+          <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-5942500580735009" data-ad-slot="9604290799" data-ad-format="auto" data-full-width-responsive="true"></ins>
         </div>
-        <div class="ad-inline" style="height:250px;">
-          Advertisement — Google AdSense (300×250)
+        <div class="ad-slot">
+          <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-5942500580735009" data-ad-slot="9604290799" data-ad-format="auto" data-full-width-responsive="true"></ins>
         </div>
       </div>
 
@@ -1032,10 +1034,16 @@
   <!-- AD SIDEBAR -->
   <aside class="ad-sidebar">
     <div class="ad-sidebar-label">Sponsored</div>
-    <div class="ad-unit tall">AdSense<br>300×250</div>
-    <div class="ad-unit medium">AdSense<br>300×150</div>
+    <div class="ad-slot">
+      <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-5942500580735009" data-ad-slot="9604290799" data-ad-format="auto" data-full-width-responsive="true"></ins>
+    </div>
+    <div class="ad-slot">
+      <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-5942500580735009" data-ad-slot="9604290799" data-ad-format="auto" data-full-width-responsive="true"></ins>
+    </div>
     <div class="ad-sidebar-label">Advertisement</div>
-    <div class="ad-unit tall">AdSense<br>300×250</div>
+    <div class="ad-slot">
+      <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-5942500580735009" data-ad-slot="9604290799" data-ad-format="auto" data-full-width-responsive="true"></ins>
+    </div>
   </aside>
 </div>
 
@@ -1919,6 +1927,15 @@
   applyTheme();
   updateUsageBadge();
   updateLimitNote();
+
+  // AdSense: show ads to free users only; remove ad slots entirely for Pro/Premium
+  if (isPro()) {
+    document.querySelectorAll('.ad-slot').forEach(function (el) { el.remove(); });
+  } else {
+    document.querySelectorAll('.ad-slot ins.adsbygoogle').forEach(function () {
+      try { (window.adsbygoogle = window.adsbygoogle || []).push({}); } catch (e) {}
+    });
+  }
 </script>
 
 <!-- Vercel Web Analytics -->
