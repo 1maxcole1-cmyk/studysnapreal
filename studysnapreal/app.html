@@ -738,6 +738,19 @@
   }
   .modal-cta:hover { box-shadow: 0 0 24px var(--accent-glow); }
   .modal-soon { font-size: 12px; color: var(--muted2); margin-top: 12px; }
+  .activate-box { border-top: 1px solid var(--border); margin-top: 18px; padding-top: 16px; text-align: left; }
+  .activate-title { font-weight: 500; font-size: 14px; }
+  .activate-sub { font-size: 12px; color: var(--muted); margin-bottom: 10px; }
+  .activate-row { display: flex; gap: 8px; }
+  #activate-email {
+    flex: 1; padding: 9px 12px;
+    background: var(--surface2); border: 1px solid var(--border2);
+    border-radius: 8px; color: var(--text); font-size: 13px;
+    font-family: 'DM Sans', sans-serif;
+  }
+  #activate-email:focus { outline: none; border-color: rgba(200,255,0,0.4); }
+  .activate-row .tier-btn { width: auto; padding: 9px 18px; }
+  .activate-msg { font-size: 12px; color: var(--muted); margin-top: 8px; min-height: 14px; }
   .modal-close {
     background: transparent;
     border: none;
@@ -1065,7 +1078,7 @@
           <li>Unlimited saved library</li>
           <li>Copy &amp; export any set</li>
         </ul>
-        <button class="tier-btn" onclick="choosePlan('Pro')">Choose Pro</button>
+        <button class="tier-btn" onclick="window.open('https://buy.stripe.com/test_6oUdR26z89g92Iobs3fbq00','_blank')">Get Pro — $4.99/mo</button>
       </div>
       <div class="tier-card best">
         <div class="tier-flag">Best value</div>
@@ -1078,10 +1091,18 @@
           <li>AI explanations on quiz answers</li>
           <li>Early access to new features</li>
         </ul>
-        <button class="tier-btn primary" onclick="choosePlan('Premium')">Choose Premium</button>
+        <button class="tier-btn primary" onclick="window.open('https://buy.stripe.com/test_28E5kwe1A63X2IoeEffbq01','_blank')">Get Premium — $9.99/mo</button>
       </div>
     </div>
-    <p class="modal-soon">Paid plans are launching soon — for now, enjoy 2 free study sets a day.</p>
+    <div class="activate-box">
+      <p class="activate-title">Already paid?</p>
+      <p class="activate-sub">Enter the email you used at checkout to unlock your plan.</p>
+      <div class="activate-row">
+        <input id="activate-email" type="email" placeholder="you@example.com" autocomplete="email">
+        <button class="tier-btn primary" onclick="activatePlan()">Activate</button>
+      </div>
+      <div id="activate-msg" class="activate-msg"></div>
+    </div>
     <button class="modal-close" onclick="closeModal()">Close</button>
   </div>
 </div>
@@ -1245,9 +1266,29 @@
   /* ===================== MODAL ===================== */
   function showUpgradeModal() { document.getElementById('upgrade-modal').classList.add('show'); }
   function closeModal() { document.getElementById('upgrade-modal').classList.remove('show'); }
-  function choosePlan(name) {
-    closeModal();
-    showToast(name + ' is launching soon — thanks for your interest!');
+  function activatePlan() {
+    const emailEl = document.getElementById('activate-email');
+    const msg = document.getElementById('activate-msg');
+    const email = ((emailEl && emailEl.value) || '').trim();
+    if (!email) { msg.textContent = 'Enter the email you paid with.'; return; }
+    msg.textContent = 'Checking your subscription…';
+    fetch('/api/check-subscription', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: email })
+    }).then(function (r) { return r.json(); }).then(function (data) {
+      if (data && (data.plan === 'pro' || data.plan === 'premium')) {
+        localStorage.setItem('snapwize_plan', data.plan);
+        msg.textContent = 'Success — unlocking ' + data.plan + '…';
+        setTimeout(function () { location.reload(); }, 1000);
+      } else if (data && data.plan === 'free') {
+        msg.textContent = 'No active subscription found for that email. Make sure it matches the email you used at checkout.';
+      } else {
+        msg.textContent = (data && data.error) || 'Could not verify right now. Please try again.';
+      }
+    }).catch(function () {
+      msg.textContent = 'Something went wrong. Please try again.';
+    });
   }
   document.getElementById('upgrade-modal').addEventListener('click', (e) => {
     if (e.target.id === 'upgrade-modal') closeModal();
